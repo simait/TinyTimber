@@ -1,0 +1,4 @@
+wait_halt
+mdw 0xffffff68
+mww 0xffffff64 0x5a00020b
+mdw 0xffffff68

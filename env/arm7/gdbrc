@@ -1,0 +1,90 @@
+file test.elf
+set watchdog 0
+target remote :2000
+monitor arm7_9 force_hw_bkpts enable
+
+define show_us0
+	printf "US_CSR:  %08x\n", ((AT91S_USART*)0xfffC0000).US_CSR
+	printf "US_MR:   %08x\n", ((AT91S_USART*)0xfffC0000).US_MR
+	printf "US_IMR:  %08x\n", ((AT91S_USART*)0xfffC0000).US_IMR
+	printf "US_BRGR: %08x\n", ((AT91S_USART*)0xfffC0000).US_BRGR
+end
+
+define show_us1
+	printf "US_CSR:  %08x\n", ((AT91S_USART*)0xfffC4000).US_CSR
+	printf "US_MR:   %08x\n", ((AT91S_USART*)0xfffC4000).US_MR
+	printf "US_IMR:  %08x\n", ((AT91S_USART*)0xfffC4000).US_IMR
+	printf "US_BRGR: %08x\n", ((AT91S_USART*)0xfffC4000).US_BRGR
+end
+
+define show_pmc
+	printf "PMC_SR:   %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_SR
+	printf "PMC_SCSR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_SCSR
+	printf "PMC_PCSR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_PCSR
+	printf "PMC_MCKR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_MCKR
+	printf "PMC_MCfR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_MCFR
+	printf "PMC_PLLR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_PLLR
+	printf "PMC_MCKR: %08x\n", ((AT91S_PMC*)0xfffffC00).PMC_MCKR
+end
+
+define show_pioa
+	printf "PIO_PSR:   %08x\n", ((AT91S_PIO*)0xfffff400).PIO_PSR
+	printf "PIO_OSR:   %08x\n", ((AT91S_PIO*)0xfffff400).PIO_OSR
+	printf "PIO_ISR:   %08x\n", ((AT91S_PIO*)0xfffff400).PIO_ISR
+	printf "PIO_ODSR:  %08x\n", ((AT91S_PIO*)0xfffff400).PIO_ODSR
+	printf "PIO_ISR:   %08x\n", ((AT91S_PIO*)0xfffff400).PIO_ISR
+	printf "PIO_MDSR:  %08x\n", ((AT91S_PIO*)0xfffff400).PIO_MDSR
+	printf "PIO_PPUSR: %08x\n", ((AT91S_PIO*)0xfffff400).PIO_PPUSR
+	printf "PIO_ABSR:  %08x\n", ((AT91S_PIO*)0xfffff400).PIO_ABSR
+	printf "PIO_OWSR:  %08x\n", ((AT91S_PIO*)0xfffff400).PIO_OWSR
+end
+
+define show_piob
+	printf "PIO_PSR:   %08x\n", ((AT91S_PIO*)0xfffff600).PIO_PSR
+	printf "PIO_OSR:   %08x\n", ((AT91S_PIO*)0xfffff600).PIO_OSR
+	printf "PIO_ISR:   %08x\n", ((AT91S_PIO*)0xfffff600).PIO_ISR
+	printf "PIO_ODSR:  %08x\n", ((AT91S_PIO*)0xfffff600).PIO_ODSR
+	printf "PIO_PDSR:  %08x\n", ((AT91S_PIO*)0xfffff600).PIO_PDSR
+	printf "PIO_ISR:   %08x\n", ((AT91S_PIO*)0xfffff600).PIO_ISR
+	printf "PIO_MDSR:  %08x\n", ((AT91S_PIO*)0xfffff600).PIO_MDSR
+	printf "PIO_PPUSR: %08x\n", ((AT91S_PIO*)0xfffff600).PIO_PPUSR
+	printf "PIO_ABSR:  %08x\n", ((AT91S_PIO*)0xfffff600).PIO_ABSR
+	printf "PIO_OWSR:  %08x\n", ((AT91S_PIO*)0xfffff600).PIO_OWSR
+end
+
+define show_tc0
+	printf "TCO_CMR:   %08x\n", ((AT91S_TC*)0xfffa0000).TC_CMR
+	printf "TCO_CV:    %08x\n", ((AT91S_TC*)0xfffa0000).TC_CV
+	printf "TCO_RA:    %08x\n", ((AT91S_TC*)0xfffa0000).TC_RA
+	printf "TCO_RB:    %08x\n", ((AT91S_TC*)0xfffa0000).TC_RB
+	printf "TCO_RC:    %08x\n", ((AT91S_TC*)0xfffa0000).TC_RC
+	printf "TCO_SR:    %08x\n", ((AT91S_TC*)0xfffa0000).TC_SR
+	printf "TC0_IMR:   %08x\n", ((AT91S_TC*)0xfffa0000).TC_IMR
+end
+
+define show_tc1
+	printf "TC1_CMR:   %08x\n", ((AT91S_TC*)0xfffa0040).TC_CMR
+	printf "TC1_CV:    %08x\n", ((AT91S_TC*)0xfffa0040).TC_CV
+	printf "TC1_RA:    %08x\n", ((AT91S_TC*)0xfffa0040).TC_RA
+	printf "TC1_RB:    %08x\n", ((AT91S_TC*)0xfffa0040).TC_RB
+	printf "TC1_RC:    %08x\n", ((AT91S_TC*)0xfffa0040).TC_RC
+	printf "TC1_SR:    %08x\n", ((AT91S_TC*)0xfffa0040).TC_SR
+	printf "TC1_IMR:   %08x\n", ((AT91S_TC*)0xfffa0040).TC_IMR
+end
+
+define show_tc2
+	printf "TC2_CMR:   %08x\n", ((AT91S_TC*)0xfffa0080).TC_CMR
+	printf "TC2_CV:    %08x\n", ((AT91S_TC*)0xfffa0080).TC_CV
+	printf "TC2_RA:    %08x\n", ((AT91S_TC*)0xfffa0080).TC_RA
+	printf "TC2_RB:    %08x\n", ((AT91S_TC*)0xfffa0080).TC_RB
+	printf "TC2_RC:    %08x\n", ((AT91S_TC*)0xfffa0080).TC_RC
+	printf "TC2_SR:    %08x\n", ((AT91S_TC*)0xfffa0080).TC_SR
+	printf "TC2_IMR:   %08x\n", ((AT91S_TC*)0xfffa0080).TC_IMR
+end
+
+define show_tcb
+	printf "TCB_BMR:   %08x\n", ((AT91S_TCB*)0xfffa0000).TCB_BMR
+	show_tc0
+	show_tc1
+	show_tc2
+end

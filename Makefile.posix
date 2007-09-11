@@ -1,0 +1,36 @@
+CC				:= gcc
+
+DEFINES			:= -DENV_POSIX=1 -DPOSIX_TICK=100000
+
+TT				:= tT/kernel.c
+ENV				:= env/posix/env.c env/posix/ack.c
+
+TT_SOURCES		:= $(ENV)\
+				   $(TT)
+
+TT_OBJECTS		:= $(patsubst %.c, %.o, $(TT_SOURCES))
+
+CFLAGS			:= -O2 -g -std=c99 -Wall -pedantic
+
+LDFLAGS			:= -lpthread
+
+INCLUDE			:= -I./
+
+TEST_SOURCES	:= src/main.c
+
+TEST_OBJECTS	:= $(patsubst %.c, %.o, $(TEST_SOURCES))
+
+TEST_ELF		:= test
+
+.PHONY: all clean
+
+%.o:%.c
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+all: $(TT_OBJECTS) test
+
+test: $(TEST_OBJECTS) $(TT_OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDE) $(TEST_OBJECTS) $(TT_OBJECTS) -o $(TEST_ELF)
+
+clean:
+	rm -rf $(TT_OBJECTS) $(TT_LIB) $(TEST_OBJECTS) $(TEST_ELF)

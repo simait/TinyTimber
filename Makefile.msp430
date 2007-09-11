@@ -1,0 +1,57 @@
+ARCH			:= msp430
+CC				:= $(ARCH)-gcc
+OD				:= $(ARCH)-objdump
+
+DEFINES 		:= -DENV_MSP430=1
+
+TT				:= tT/kernel.c
+ENV				:= env/msp430/env.c
+#env/msp430/env_asm.s
+
+TT_SOURCES		:= $(ENV)\
+				   $(TT)
+
+TT_OBJECTS		:= $(patsubst %.s, %.o, $(patsubst %.c, %.o, $(TT_SOURCES)))
+
+TT_LIB			:= tT.a
+
+CFLAGS			:= -O2 -Wall\
+				   -mmcu=msp430x1611 -mendup-at=main -mno-stack-init
+
+TEST_LIST		:= test.msp430.lst
+TEST_MAP		:= test.msp430.map
+LDFLAGS			:= -Wl,-Map,$(TEST_MAP)
+
+INCLUDE			:= -I./
+
+TEST_SOURCES	:= src/main.c
+
+TEST_OBJECTS	:= $(patsubst %.c, %.o, $(TEST_SOURCES))
+
+TEST_ELF		:= test.elf
+
+.PHONY: all clean
+
+%.o:%.s
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+#@echo "CC" $@
+%.o:%.c
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+all: $(TT_OBJECTS) test
+	$(OD) -dS $(TEST_ELF) > $(TEST_LIST)
+
+flash: $(TEST_ELF)
+	msp430-jtag --elf -e -p $(TEST_ELF)
+	
+debug:
+	msp430-gdb -x env/msp430/gdbrc
+
+$(TEST_ELF): $(TT_OBJECTS) $(TEST_OBJECTS)
+	$(CC) $(DEFINES) $(CFLAGS) $(LDFLAGS) $(INCLUDE) $^ -o $(TEST_ELF)
+
+test: $(TEST_ELF)
+
+clean:
+	rm -rf $(TT_OBJECTS) $(TEST_OBJECTS) $(TEST_ELF) $(TEST_MAP) $(TEST_LIST)

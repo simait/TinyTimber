@@ -1,0 +1,62 @@
+ARCH			:= avr
+CC				:= $(ARCH)-gcc
+OD				:= $(ARCH)-objdump
+
+DEFINES 		:= -DENV_AVR=1
+
+TT				:= tT/kernel.c
+ENV				:= env/avr/env.c
+#env/avr/env_asm.s
+
+TT_SOURCES		:= $(ENV)\
+				   $(TT)
+
+TT_OBJECTS		:= $(patsubst %.s, %.o, $(patsubst %.c, %.o, $(TT_SOURCES)))
+
+TT_LIB			:= tT.a
+
+CFLAGS			:= -O2 -Wall -fno-common\
+				   -mmcu=at90can128
+
+TEST_LIST		:= test.avr.lst
+TEST_MAP		:= test.avr.map
+LDFLAGS			:= -Wl,-Map,$(TEST_MAP)
+
+INCLUDE			:= -I./
+
+TEST_SOURCES	:= src/main.c
+
+TEST_OBJECTS	:= $(patsubst %.c, %.o, $(TEST_SOURCES))
+
+TEST_ELF		:= test.elf
+
+TEST_HEX		:= test.hex
+
+.PHONY: all clean hex
+
+%.o:%.s
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+%.o:%.c
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+all: $(TT_OBJECTS) test
+	$(OD) -dS $(TEST_ELF) > $(TEST_LIST)
+
+$(TEST_ELF): $(TT_OBJECTS) $(TEST_OBJECTS)
+	$(CC) $(DEFINES) $(CFLAGS) $(LDFLAGS) $(INCLUDE) $^ -o $@
+
+$(TEST_HEX): $(TEST_ELF)
+	avr-objcopy -R .eeprom -O ihex $(TEST_ELF) $(TEST_HEX)
+
+flash: $(TEST_HEX)
+	avrdude -c jtag2 -P usb -p c128 -U flash:w:$(TEST_HEX)
+	
+debug:
+	avarice --mkII --detach --jtag usb :2000
+	avr-gdb -x env/avr/gdbrc
+
+test: $(TEST_ELF)
+
+clean:
+	rm -rf $(TT_OBJECTS) $(TEST_OBJECTS) $(TEST_ELF) $(TEST_HEX) $(TEST_MAP) $(TEST_LIST)

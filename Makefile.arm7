@@ -1,0 +1,92 @@
+ARCH			:= arm-elf
+CC				:= $(ARCH)-gcc
+CP				:= $(ARCH)-objcopy
+OD				:= $(ARCH)-objdump
+
+DEFINES 		:= -DENV_ARM7=1
+
+TEST_LIST		:= test.arm7.lst
+TEST_MAP		:= test.arm7.map
+LDFLAGS			:= -Wl,-Tenv/arm7/at91sam7x256.x,-Map,$(TEST_MAP)
+
+INCLUDE			:= -I./
+
+ARM_SOURCES		:= tT/kernel.c env/arm7/env.c env/arm7/sys_call.c
+
+THUMB_SOURCES	:=
+
+CRT				:= env/arm7/crt.o
+
+ASM_SOURCES		:=
+
+ARM_OBJECTS		:= $(patsubst %.c, %.o, $(ARM_SOURCES))
+
+THUMB_OBJECTS	:= $(patsubst %.c, %.o, $(THUMB_SOURCES))
+
+ASM_OBJECTS		:= $(patsubst %.s, %.o, $(ASM_SOURCES))
+
+BASE_CFLAGS		:= -O2 -Wall -fno-common \
+				   -mcpu=arm7tdmi -mthumb-interwork -nostartfiles
+#-fno-schedule-insns -fno-schedule-insns2
+
+CFLAGS			:= $(BASE_CFLAGS)
+
+ASM_CFLAGS		:= $(BASE_CFLAGS)
+
+ARM_CFLAGS		:= $(BASE_CFLAGS)
+
+THUMB_CFLAGS	:= $(BASE_CFLAGS) -mthumb
+
+TEST_SOURCES	:= src/main.c
+
+TEST_OBJECTS	:= $(patsubst %.c, %.o, $(TEST_SOURCES))
+
+TEST_ELF		:= test.elf
+
+TEST_BIN		:= test.bin
+
+ALL_OBJECTS		:= $(ASM_OBJECTS)\
+				   $(ARM_OBJECTS)\
+				   $(THUMB_OBJECTS)\
+				   $(TEST_OBJECTS)
+
+.PHONY: all clean
+
+%.o:%.s
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+%.o:%.c
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) -c $< -o $@
+
+all: crt asm_code arm_code thumb_code test_code
+	$(CC) $(DEFINES) $(CFLAGS) $(INCLUDE) $(LDFLAGS) $(ALL_OBJECTS) -o $(TEST_ELF)
+	$(OD) -dS $(TEST_ELF) > $(TEST_LIST)
+
+crt: CFLAGS=$(ASM_CFLAGS)
+crt: $(CRT)
+
+asm_code: CFLAGS=$(ASM_CFLAGS)
+asm_code: $(ASM_OBJECTS)
+
+arm_code: CFLAGS=$(ARM_CFLAGS)
+arm_code: $(ARM_OBJECTS)
+
+thumb_code: CFLAGS=$(THUMB_CFLAGS)
+thumb_code: $(THUMB_OBJECTS)
+
+test_code: CFLAGS=$(ARM_CFLAGS)
+test_code: $(TEST_OBJECTS)
+
+$(TEST_BIN): all
+	$(CP) $(TEST_ELF) -O binary $(TEST_BIN)
+
+bin: $(TEST_BIN)
+
+flash: $(TEST_BIN)
+	openocd --file env/arm7/openocd.flash
+	
+debug:
+	openocd --file env/arm7/openocd.debug
+
+clean:
+	rm -rf $(ALL_OBJECTS) $(CRT) $(TEST_ELF) $(TEST_BIN) $(TEST_MAP)
