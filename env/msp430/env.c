@@ -258,8 +258,6 @@ void msp430_timer_set(env_time_t next)
  */
 __attribute__((naked)) interrupt(TIMERA0_VECTOR) msp430_timera_compare0(void)
 {
-	asm volatile ("bic.b	#0x40, &0x35\n");
-
 	/* Save context. */
 	MSP430_CONTEXT_SAVE();
 	
@@ -288,7 +286,6 @@ __attribute__((naked)) interrupt(TIMERA0_VECTOR) msp430_timera_compare0(void)
 	/* Restore the context. */
 	MSP430_CONTEXT_RESTORE();
 
-	asm volatile ("bis.b	#0x40, &0x35\n");
 	asm volatile("reti");
 }
 
@@ -302,25 +299,18 @@ __attribute__((naked)) interrupt(TIMERA0_VECTOR) msp430_timera_compare0(void)
  */
 interrupt(TIMERA1_VECTOR) msp430_timera_compare1(void)
 {
-	/*
-	 * Both ccp1 and overflow for timera is on this vector so let's
-	 * just check which interrupt it is. static is simply because we don't
-	 * want to mess up our return path.
-	 */
-	asm volatile ("bic.b	#0x40, &0x35\n");
-
+	/* Bogus read of TAIV to clear interrupt, do NOT remove. */
 	TAIV;
-	/*
+
+	/* This creates a _lot_ of overhead :/
 	if (TAIV != TAIV_OVERFLOW)
-		msp430_panic("Expected overflow interrupt, got something else.\n");
-	*/
+		msp430_panic("Expected overflow interrupt, got something else.\n");*/
+
 	/* One epoch has expired. */
 	msp430_timer_base += MSP430_TIMER_COUNT;
 
 	/* Schedule any interrupts for this epoch. */
 	msp430_timer_epoch_schedule();
-
-	asm volatile ("bis.b	#0x40, &0x35\n");
 }
 
 /* ************************************************************************** */
@@ -377,7 +367,6 @@ void msp430_context_init(
  */
 __attribute__((naked)) void msp430_context_dispatch(msp430_context_t *context)
 {
-	asm volatile ("bic.b	#0x40, &0x35\n");\
 	/*
 	 * Since we want to be able to treat this as interrupt cotext we
 	 * must save the SR(r2) on the stack.
@@ -393,7 +382,6 @@ __attribute__((naked)) void msp430_context_dispatch(msp430_context_t *context)
 	/* Restore the previous context. */
 	MSP430_CONTEXT_RESTORE();
 
-	asm volatile ("bis.b	#0x40, &0x35\n");\
 	/*
 	 * This will restore the thread SR(r2) and the pc. We treat all threads
 	 * as in interrupt mode whenever we return to to them.

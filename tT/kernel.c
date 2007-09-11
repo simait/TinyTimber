@@ -369,13 +369,11 @@ yield:
 			while (tmp->waits_for)
 				tmp = tmp->waits_for->owned_by;
 			ENV_CONTEXT_DISPATCH(tmp);
-			asm volatile ("bic.b	#0x40, &0x35\n");\
 		}
 		else
 		{
 			/* Ok, let's idle. */
 			ENV_CONTEXT_DISPATCH(threads.idle);
-			asm volatile ("bic.b	#0x40, &0x35\n");\
 		}
 
 		/*
@@ -595,7 +593,6 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 
 		/* Run the thread that has locked our object. */
 		ENV_CONTEXT_DISPATCH(tmp);
-		asm volatile ("bic.b	#0x40, &0x35\n");\
 
 		/* Sanity checks are good(tm). */
 		TT_SANITY(ENV_ISPROTECTED());
@@ -632,7 +629,6 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		to->wanted_by = NULL;
 		tmp->waits_for = NULL;
 		ENV_CONTEXT_DISPATCH(tmp);
-		asm volatile ("bic.b	#0x40, &0x35\n");\
 
 		/* Sanity checks are good(tm). */
 		TT_SANITY(ENV_ISPROTECTED());
