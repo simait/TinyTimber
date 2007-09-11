@@ -4,6 +4,8 @@ NOTE:
 
 env/*:
 
+	* Create a unified build system for tinyTimber and it's examples.
+
 	* Figure out why the MSP430 environment breaks when taking overflow
 	  into account in the timer_get() function, until then we will take
 	  the long way around and just generate those extra interrupts.
