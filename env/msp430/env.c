@@ -435,8 +435,8 @@ void msp430_idle(void)
 	 * We want the ACLK to be running so that we can offer some timing services
 	 * during idle time.
 	 */
-	LPM3;
 	/*for (;;);*/
+	LPM3;
 
 	/* Make ABSOLUTELY sure that that a return from this function is noticed. */
 	msp430_panic("msp430_idle(): LPM3 returned.\n");
