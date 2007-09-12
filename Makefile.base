@@ -2,6 +2,7 @@
 # Make sure the ARCH variable is defined, we need it to execute all
 # commands, as well as selecting the Makefile.
 ################################################################################
+
 ifndef ARCH
 $(error Variable ARCH was not defined.)
 endif
@@ -16,21 +17,21 @@ include $(ROOT)/Makefile.$(ARCH)
 # Make sure the ROOT variable is set as it defines where the root of
 # the tinyTimber code is located.
 ################################################################################
+
 ifndef ROOT
 $(error Variable ROOT was not defined.)
 endif
 
-# The kernel sources are always the same.
+# Fix the kernel sources etc.
 TT_SRC	:= $(ROOT)/tT/kernel.c
 TT_OBJ	:= $(patsubst %.c, %.o, $(TT_SRC))
-
-# We also define TT_INC to point to the root.
 TT_INC	:= -I./$(ROOT)
 
 ################################################################################
 # Make sure the MCU variable is set since it's /very/ vital for
 # compiling the code.
 ################################################################################
+
 ifndef MCU
 $(error Variable MCU was not set.)
 endif

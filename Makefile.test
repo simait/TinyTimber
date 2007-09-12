@@ -1,4 +1,0 @@
-ARCH=msp430
-ROOT=./
-
-include $(ROOT)/Makefile.base
