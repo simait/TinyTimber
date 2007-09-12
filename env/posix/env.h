@@ -1,18 +1,18 @@
 #ifndef ENV_POSIX_ENV_H_
 #define ENV_POSIX_ENV_H_
 
-/* Environment headers. */
-#include <env/posix/types.h>
-
-/* tinyTimber headers. */
-#include <tT/tT.h>
-
 /* Standard C headers. */
 #include <stdio.h>
 #include <stddef.h>
 
 /* POSIX/UNIX headers. */
 #include <unistd.h>
+
+/* Environment headers. */
+#include <posix/types.h>
+
+/* tinyTimber headers. */
+#include <tT.h>
 
 /* ************************************************************************** */
 

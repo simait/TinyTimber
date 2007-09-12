@@ -28,12 +28,12 @@
 #include <sys/select.h>
 
 /* Environment headers. */
-#include <env/posix/env.h>
-#include <env/posix/types.h>
-#include <env/posix/ack.h>
+#include <posix/env.h>
+#include <posix/types.h>
+#include <posix/ack.h>
 
 /* tinyTimber headers. */
-#include <tT/kernel.h>
+#include <kernel.h>
 
 /* ************************************************************************** */
 

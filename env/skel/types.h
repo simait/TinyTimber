@@ -13,7 +13,7 @@
  * Should evalutate to the type that is used to store the context of a
  * thread.
  */
-typedef int env_context_t;
+typedef struct env_context_t {int dummy;} env_context_t;
 
 /**
  * \brief Environment time typedef.

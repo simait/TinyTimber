@@ -1,4 +1,5 @@
-#include <env/env.h>
-#include <env/types.h>
+#include <env.h>
+#include <types.h>
 
-#include <tT/kernel.h>
+#include <tT.h>
+#include <kernel.h>
