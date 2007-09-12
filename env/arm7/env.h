@@ -7,12 +7,12 @@
 #ifndef ENV_ARM7_ENV_H_
 #define ENV_ARM7_ENV_H_
 
-#include <tT/kernel.h>
-#include <env/arm7/types.h>
+#include <arm7/types.h>
+#include <arm7/sys_call.h>
+#include <arm7/at91sam7x256.h>
+#include <arm7/lib_at91sam7x256.h>
 
-#include <env/arm7/sys_call.h>
-#include <env/arm7/at91sam7x256.h>
-#include <env/arm7/lib_at91sam7x256.h>
+#include <kernel.h>
 
 /* ************************************************************************** */
 

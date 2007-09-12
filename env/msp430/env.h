@@ -1,7 +1,7 @@
 #ifndef ENV_MSP430_ENV_H_
 #define ENV_MSP430_ENV_H_
 
-#include <env/types.h>
+#include <types.h>
 
 #include <signal.h>
 #include <debug.h>

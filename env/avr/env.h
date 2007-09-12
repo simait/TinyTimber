@@ -1,14 +1,14 @@
 #ifndef ENV_AVR_ENV_H_
 #define ENV_AVR_ENV_H_
 
-#include <tT/kernel.h>
-
 #include <string.h>
 
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+
+#include <kernel.h>
 
 /* ************************************************************************** */
 

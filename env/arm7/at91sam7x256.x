@@ -1,6 +1,3 @@
-/* Startup file is always our crt.o file. */
-STARTUP(env/arm7/crt.o);
-
 /* Set the entry point, warning if we mess up. */
 ENTRY(__vec_reset);
 

@@ -1,8 +1,8 @@
-#include <env/arm7/env.h>
-#include <env/arm7/types.h>
-#include <env/arm7/sys_call.h>
+#include <arm7/env.h>
+#include <arm7/types.h>
+#include <arm7/sys_call.h>
 
-#include <tT/kernel.h>
+#include <kernel.h>
 
 #include <string.h>
 

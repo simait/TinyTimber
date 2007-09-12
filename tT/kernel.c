@@ -1,12 +1,20 @@
-#include <stdio.h>
-#include <env/types.h>
-#include <env/env.h>
-#include <env/range.h>
-
-#include <tT/tT.h>
-#include <tT/kernel.h>
-
+/*
+ * C-lib headers, not needed but makes life easier.
+ */
 #include <string.h>
+
+/*
+ * Environment specific eaders.
+ */
+#include <types.h>
+#include <env.h>
+#include <range.h>
+
+/*
+ * tinyTimber specific headers.
+ */
+#include <tT.h>
+#include <kernel.h>
 
 /**
  * \brief tinyTimber no argument argument.

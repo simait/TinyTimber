@@ -2,7 +2,7 @@
 #define TT_H_
 
 #include <stddef.h>
-#include <env/types.h>
+#include <types.h>
 
 /* ************************************************************************** */
 
@@ -28,6 +28,13 @@ typedef struct tt_object_t
 	 */
 	tt_thread_t *wanted_by;
 } tt_object_t;
+
+/* ************************************************************************** */
+
+/**
+ * \brief tinyTimber object "constructor".
+ */
+#define tt_object() {NULL, NULL}
 
 /* ************************************************************************** */
 

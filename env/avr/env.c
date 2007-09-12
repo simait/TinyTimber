@@ -1,12 +1,12 @@
-#include <env/env.h>
-#include <env/types.h>
-
-#include <tT/kernel.h>
-
 #include <string.h>
 
 #include <avr/io.h>
 #include <avr/power.h>
+
+#include <env.h>
+#include <types.h>
+
+#include <kernel.h>
 
 /* ************************************************************************** */
 

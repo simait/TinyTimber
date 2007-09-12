@@ -1,5 +1,5 @@
-#include <tT/tT.h>
-#include <env/env.h>
+#include <tT.h>
+#include <env.h>
 
 #include <string.h>
 
@@ -7,7 +7,7 @@ struct hello_obj
 {
 	tt_object_t obj;
 };
-#define hello_obj() {tt_object()}
+#define hello_obj() {{0}}
 
 static struct hello_obj hello = hello_obj();
 

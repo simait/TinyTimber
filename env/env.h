@@ -2,17 +2,17 @@
 #define ENV_H_
 
 #if defined ENV_POSIX
-#	include "env/posix/env.h"
+#	include "posix/env.h"
 #elif defined ENV_MSP430
-#	include "env/msp430/env.h"
+#	include "msp430/env.h"
 #elif defined ENV_AVR
-#	include "env/avr/env.h"
+#	include "avr/env.h"
 #elif defined ENV_PIC18
-#	include "env/pic18/env.h"
+#	include "pic18/env.h"
 #elif defined ENV_ARM7
-#	include "env/arm7/env.h"
+#	include "arm7/env.h"
 #elif defined ENV_SKEL
-#	include "env/skel/env.h"
+#	include "skel/env.h"
 #else
 #	error Unknown environment.
 #endif

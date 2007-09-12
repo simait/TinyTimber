@@ -1,5 +1,5 @@
-#include <env/arm7/env.h>
-#include <env/arm7/sys_call.h>
+#include <arm7/env.h>
+#include <arm7/sys_call.h>
 
 /* ************************************************************************** */
 

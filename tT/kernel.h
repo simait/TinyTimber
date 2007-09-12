@@ -1,8 +1,8 @@
 #ifndef KERNEL_H_
 #define KERNEL_H_
 
-#include <tT/tT.h>
-#include <env/types.h>
+#include <tT.h>
+#include <types.h>
 
 /* ************************************************************************** */
 
