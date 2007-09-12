@@ -19,6 +19,10 @@ case $1 in
 		;;
 esac
 
+TT_C="${TT_C} tT/kernel.c"
+TT_H="${TT_H} tT/tT.h tT/kernel.h"
+
+MANGLED_DIR=mangled/$1
 MANGLED_C=mangled/$1/tT.c
 MANGLED_H=mangled/$1/tT.h
 
@@ -28,10 +32,7 @@ MANGLED_C_FOOTER=""
 MANGLED_H_HEADER="#ifndef TT_MANGLED\n#define TT_MANGLED\n"
 MANGLED_H_FOOTER="#endif\n"
 
-TT_C="${TT_C} tT/kernel.c"
-TT_H="${TT_H} tT/tT.h tT/kernel.h"
-
-mkdir -p mangled/$1
+mkdir -p $MANGLED_DIR
 
 rm -f $MANGLED_C
 echo -e $MANGLED_C_HEADER >> $MANGLED_C
