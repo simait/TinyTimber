@@ -10,7 +10,7 @@ endif
 CC	:= $(ARCH)-gcc
 
 # Include the environment Makefile.
-include $(ROOT)/Makefile.$(ARCH).new
+include $(ROOT)/Makefile.$(ARCH)
 
 ################################################################################
 # Make sure the ROOT variable is set as it defines where the root of
