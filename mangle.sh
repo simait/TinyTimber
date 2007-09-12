@@ -26,28 +26,39 @@ MANGLED_DIR=mangled/$1
 MANGLED_C=mangled/$1/tT.c
 MANGLED_H=mangled/$1/tT.h
 
+SHA1=`cat .git/HEAD`
+case $SHA1 in
+	ref:*)
+		SHA1=`echo "${SHA1}"|awk '{print ".git/" $2}'`
+		SHA1=`cat "${SHA1}"`
+		;;
+esac
+ORIGIN="/* MANGLED ORIGIN: ${SHA1} */\n"
+
 MANGLED_C_HEADER="#include <tT.h>"
 MANGLED_C_FOOTER=""
 
-MANGLED_H_HEADER="#ifndef TT_MANGLED\n#define TT_MANGLED\n"
+MANGLED_H_HEADER="#ifndef TT_MANGLED\n#define TT_MANGLED"
 MANGLED_H_FOOTER="#endif\n"
 
 mkdir -p $MANGLED_DIR
 
 rm -f $MANGLED_C
-echo -e $MANGLED_C_HEADER >> $MANGLED_C
+echo -e "${ORIGIN}" >> $MANGLED_C
+echo -e "${MANGLED_C_HEADER}" >> $MANGLED_C
 for i in $TT_C
 do
 	echo -e "\n/* MANGLING FILE: ${i} */\n" >> $MANGLED_C
 	cat $i >> $MANGLED_C
 done
-echo -e $MANGLED_C_FOOTER >> $MANGLED_C
+echo -e "${MANGLED_C_FOOTER}" >> $MANGLED_C
 
 rm -f $MANGLED_H
-echo -e $MANGLED_H_HEADER >> $MANGLED_H
+echo -e "${ORIGIN}" >> $MANGLED_H
+echo -e "${MANGLED_H_HEADER}" >> $MANGLED_H
 for i in $TT_H
 do
 	echo -e "\n/* MANGLING FILE: ${i} */\n" >> $MANGLED_H
 	cat $i >> $MANGLED_H
 done
-echo -e $MANGLED_H_FOOTER >> $MANGLED_H
+echo -e "${MANGLED_H_FOOTER}" >> $MANGLED_H
