@@ -6,7 +6,6 @@ DEFINES 		:= -DENV_AVR=1
 
 TT				:= tT/kernel.c
 ENV				:= env/avr/env.c
-#env/avr/env_asm.s
 
 TT_SOURCES		:= $(ENV)\
 				   $(TT)

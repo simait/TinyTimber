@@ -268,6 +268,16 @@ void _arm7_protect(int);
 /* ************************************************************************** */
 
 /**
+ * \brief Environment inline macro.
+ *
+ * Used to tag functions mainly in the tT kernel for inlining.
+ */
+#define ENV_INLINE \
+	inline
+
+/* ************************************************************************** */
+
+/**
  * \brief The main clock frequency of the AT91SAM7X256.
  *
  * Used to calculate ARM7_MASTER_CLOCK.
