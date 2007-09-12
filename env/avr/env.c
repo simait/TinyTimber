@@ -3,10 +3,14 @@
 #include <avr/io.h>
 #include <avr/power.h>
 
-#include <env.h>
-#include <types.h>
-
-#include <kernel.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <env.h>
+#	include <types.h>
+#	include <kernel.h>
+#endif
 
 /* ************************************************************************** */
 

@@ -8,7 +8,12 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
-#include <kernel.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <kernel.h>
+#endif
 
 /* ************************************************************************** */
 

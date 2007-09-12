@@ -1,7 +1,12 @@
 #ifndef ENV_MSP430_ENV_H_
 #define ENV_MSP430_ENV_H_
 
-#include <types.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <types.h>
+#endif
 
 #include <signal.h>
 #include <debug.h>

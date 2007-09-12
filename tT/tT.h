@@ -2,7 +2,13 @@
 #define TT_H_
 
 #include <stddef.h>
-#include <types.h>
+
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <types.h>
+#endif
 
 /* ************************************************************************** */
 

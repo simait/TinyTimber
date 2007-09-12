@@ -1,8 +1,13 @@
 #ifndef KERNEL_H_
 #define KERNEL_H_
 
-#include <tT.h>
-#include <types.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <tT.h>
+#	include <types.h>
+#endif
 
 /* ************************************************************************** */
 

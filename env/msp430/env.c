@@ -1,7 +1,11 @@
-#include <env.h>
-#include <types.h>
-
-#include <kernel.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <env.h>
+#	include <types.h>
+#	include <kernel.h>
+#endif
 
 /* ************************************************************************** */
 
@@ -141,7 +145,7 @@ void msp430_print(const char *str)
  */
 void msp430_panic(const char *msg)
 {
-	ENV_PROTECT(1);
+	msp430_protect(1);
 
 	msp430_print(msg);
 	

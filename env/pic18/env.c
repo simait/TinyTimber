@@ -1,7 +1,11 @@
-#include <env/env.h>
-#include <env/types.h>
-#include <env/range.h>
-#include <tT/kernel.h>
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <env.h>
+#	include <types.h>
+#	include <kernel.h>
+#endif
 
 #include <usart.h>
 #include <timers.h>

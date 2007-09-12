@@ -4,17 +4,21 @@
 #include <string.h>
 
 /*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+/*
  * Environment specific eaders.
  */
-#include <types.h>
-#include <env.h>
-#include <range.h>
+#	include <types.h>
+#	include <env.h>
+#	include <range.h>
 
 /*
  * tinyTimber specific headers.
  */
-#include <tT.h>
-#include <kernel.h>
+#	include <kernel.h>
+#endif
 
 /**
  * \brief tinyTimber no argument argument.

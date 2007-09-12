@@ -4,7 +4,13 @@
 /* TODO: is the name of the pic18 generic file p18fxxx? */
 #include <p18f4620.h>
 #include <usart.h>
-#include <tT/kernel.h>
+
+/*
+ * Following files should not be included in case the file is mangled.
+ */
+#if ! defined TT_MANGLED
+#	include <tT/kernel.h>
+#endif
 
 /* ************************************************************************** */
 
