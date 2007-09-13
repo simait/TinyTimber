@@ -1,5 +1,17 @@
 #!/bin/sh
 
+usage()
+{
+	echo "mangle.sh <environment>"
+	exit 1
+}
+
+if test $# -ne 1
+then
+	echo "Wrong number of parameters." > /dev/stderr
+	usage
+fi
+
 MANGLE_SPEC=env/$1/mangle.spec
 if test ! -f $MANGLE_SPEC
 then
@@ -10,8 +22,10 @@ fi
 TT_C=`cat $MANGLE_SPEC|awk -F= '/TT_C/{print $2}'`
 TT_H=`cat $MANGLE_SPEC|awk -F= '/TT_H/{print $2}'`
 
-TT_C="${TT_C} tT/kernel.c"
-TT_H="${TT_H} tT/tT.h tT/kernel.h"
+TT_C="`echo ${TT_C}|sed -e 's/_KERNEL_/tT\/kernel.c/g'`"
+TT_H="`echo ${TT_H}|sed -e 's/_KERNEL_/tT\/kernel.h/g'`"
+TT_H="`echo ${TT_H}|sed -e 's/_TT_/tT\/tT.h/g'`"
+TT_H="`echo ${TT_H}|sed -e 's/_ENV_/env\/env.h/g'`"
 
 MANGLED_DIR=mangled/$1
 MANGLED_C=mangled/$1/tT.c

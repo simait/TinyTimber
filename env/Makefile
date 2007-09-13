@@ -47,6 +47,8 @@ ifdef APP_SRC
 ifndef APP_ELF
 $(error APP_SRC was defined but not APP_ELF.)
 endif
+APP_HEX = $(patsubst %.elf, %.hex, $(APP_ELF))
+APP_BIN = $(patsubst %.elf, %.bin, $(APP_ELF))
 APP_OBJ = $(patsubst %.c, %.o, $(patsubst %.S, %.o, $(APP_SRC)))
 endif
 
@@ -55,10 +57,10 @@ endif
 # is defined).
 ################################################################################
 
-# Make sure the MCU variable is set since it's /very/ vital for
+# Make sure the ENV_MCU variable is set since it's /very/ vital for
 # compiling the code.
-ifndef MCU
-$(error Variable MCU was not set.)
+ifndef ENV_MCU
+$(error Variable ENV_MCU was not set.)
 endif
 
 # Only include app if APP_SRC was defined.
@@ -70,7 +72,7 @@ else
 all: env tt
 endif
 
-ENV_TT_FLAGS:=$(sort $(ENV_CFLAGS) $(ENV_INC) $(TT_INC) $(ENV_DEF) $(MCU))
+ENV_TT_FLAGS:=$(sort $(ENV_CFLAGS) $(ENV_INC) $(TT_INC) $(ENV_DEF) $(ENV_MCU))
 
 env: CFLAGS=$(ENV_TT_FLAGS)
 env: ASFLAGS=$(ENV_TT_FLAGS)

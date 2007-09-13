@@ -3,13 +3,12 @@
 
 #include <string.h>
 
-struct hello_obj
+typedef struct hello_t
 {
 	tt_object_t obj;
-};
-#define hello_obj() {{0}}
+} hello_t;
 
-static struct hello_obj hello = hello_obj();
+static hello_t hello;
 
 static env_result_t hello_cb(tt_object_t *obj, void *arg)
 {
@@ -22,6 +21,7 @@ static env_result_t hello_cb(tt_object_t *obj, void *arg)
 
 void init(void)
 {
+	memset(&hello, 0, sizeof(hello));
 	TT_AFTER_BEFORE(ENV_USEC(500), ENV_SEC(1),&hello, hello_cb, TT_ARGS_NONE);
 }
 

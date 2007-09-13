@@ -1,20 +1,22 @@
 #ifndef ENV_H_
 #define ENV_H_
 
-#if defined ENV_POSIX
-#	include "posix/env.h"
-#elif defined ENV_MSP430
-#	include "msp430/env.h"
-#elif defined ENV_AVR
-#	include "avr/env.h"
-#elif defined ENV_PIC18
-#	include "pic18/env.h"
-#elif defined ENV_ARM7
-#	include "arm7/env.h"
-#elif defined ENV_SKEL
-#	include "skel/env.h"
-#else
-#	error Unknown environment.
+#if ! defined TT_MANGLED
+#	if defined ENV_POSIX
+#		include "posix/env.h"
+#	elif defined ENV_MSP430
+#		include "msp430/env.h"
+#	elif defined ENV_AVR
+#		include "avr/env.h"
+#	elif defined ENV_PIC18
+#		include "pic18/env.h"
+#	elif defined ENV_ARM7
+#		include "arm7/env.h"
+#	elif defined ENV_SKEL
+#		include "skel/env.h"
+#	else
+#		error Unknown environment.
+#	endif
 #endif
 
 /* ************************************************************************** */

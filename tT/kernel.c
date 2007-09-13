@@ -73,25 +73,16 @@ struct tt_message_t
 	union
 	{
 		/**
-		 * \brief Argument buffer.
+		 * \brief Variable length argument buffer.
 		 */
 		char buf[TT_ARGS_SIZE];
 
-		/**
-		 * \brief Pointer for alignment.
-		 */
+		/** \cond */
 		void *___ptr;
-
-		/**
-		 * \brief long for alignment.
-		 */
 		long ___long;
-
 #if defined __STDC_VERSION__ && __STDC_VERSION >= 19991L
-		/**
-		 * \brief long long for alignment.
-		 */
 		long long ___long_long;
+		/** \endcond */
 #endif
 	} arg;
 };
@@ -108,7 +99,7 @@ static env_context_t thread_idle;
 /**
  * \brief tinyTimber current thread.
  */
-static env_context_t *tt_current;
+env_context_t *tt_current;
 
 /* ************************************************************************** */
 
@@ -310,7 +301,7 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		TT_SANITY(this->method);
 
 		ENV_PROTECT(0);
-		tt_request(this->to, this->method, (void *)&this->arg.buf);
+		tt_request(this->to, this->method, &this->arg);
 		ENV_PROTECT(1);
 
 		TT_SANITY(threads.active == CURRENT());
@@ -580,6 +571,10 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
 		enqueue_by_deadline(&messages.active, tmp);
 	}
 
+	/*
+	 * If there are still inactive messages update the timer to the next
+	 * absolute baseline.
+	 */
 	if (messages.inactive)
 		ENV_TIMER_SET(messages.inactive->baseline);
 }
@@ -592,6 +587,12 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
  * Perform a synchronus call upon an object, this ensures the state
  * integrity of the object. Usually called using the TT_SYNC() macro, or
  * directly from the tt_thread_run() function.
+ *
+ * \note
+ * 	While it is possible to call this in a protected context please
+ * 	don't do this as it is very error-prone and should it fail you might
+ * 	have a non-circular deadlock on your hands (not detected by the
+ * 	kernel).
  *
  * \param to Object that should be called.
  * \param method Method that should be called upon the given object.
@@ -684,10 +685,6 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		TT_SANITY(ENV_ISPROTECTED());
 	}
 
-	/* 
-	 * We leave the same way we entered, again we should only ever enter
-	 * this in a protected mode if called from an interrupt handler.
-	 */
 	ENV_PROTECT(protected);
 	return result;
 }
@@ -787,13 +784,13 @@ ENV_CODE_FAST void tt_action(
 
 #if TT_CLIB_DISABLE
 	{
-		unsigned char *t0 = (void *)msg->arg.buf;
+		unsigned char *t0 = (void *)&msg->arg;
 		unsigned char *t1 = (void *)arg;
 		while (size--)
 			*t0++ = *t1++;
 	}
 #else
-	memcpy(msg->arg.buf, arg, size);
+	memcpy(&msg->arg, arg, size);
 #endif
 
 	ENV_PROTECT(1);
@@ -811,10 +808,6 @@ ENV_CODE_FAST void tt_action(
 			ENV_TIMER_SET(msg->baseline);
 	}
 
-	/*
-	 * Leave the same way we enterd, again we should only enter this in
-	 * protected mode when called from an interrupt.
-	 */
 	ENV_PROTECT(protected);
 }
 
