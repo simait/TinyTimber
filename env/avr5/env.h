@@ -17,19 +17,20 @@
 
 /* ************************************************************************** */
 
-void avr_init(void);
-void avr_print(const char *);
-void avr_panic(const char *);
+void avr5_init(void);
+void avr5_print(const char *);
+void avr5_panic(const char *);
 
-void avr_timer_set(env_time_t);
+void avr5_schedule(void);
+void avr5_timer_set(env_time_t);
 
-void avr_context_init(avr_context_t *, size_t, tt_thread_function_t);
-void avr_context_dispatch(avr_context_t *);
+void avr5_context_init(avr5_context_t *, size_t, tt_thread_function_t);
+void avr5_context_dispatch(avr5_context_t *);
 
-void avr_interrupt_return(void);
-void avr_normal_return(void);
+void avr5_interrupt_return(void);
+void avr5_normal_return(void);
 
-void avr_idle(void);
+void avr5_idle(void);
 
 /* ************************************************************************** */
 
@@ -41,98 +42,98 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief The AVR init macro.
+ * \brief AVR5 init macro.
  */
 #define ENV_INIT() \
-	avr_init()
+	avr5_init()
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR debug macro.
+ * \brief AVR5 debug macro.
  */
 #define ENV_DEBUG(msg) \
-	avr_print(msg)
+	avr5_print(msg)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR panic macro.
+ * \brief AVR5 panic macro.
  */
 #define ENV_PANIC(msg) \
-	avr_panic(msg)
+	avr5_panic(msg)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR protect macro.
+ * \brief AVR5 protect macro.
  */
 #define ENV_PROTECT(state) \
-	avr_protect(state)
+	avr5_protect(state)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR isprotected macro.
+ * \brief AVR5 isprotected macro.
  */
 #define ENV_ISPROTECTED() \
-	avr_isprotected()
+	avr5_isprotected()
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR number of threads.
+ * \brief AVR5 number of threads.
  */
 #define ENV_NUM_THREADS 5
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR stack size.
+ * \brief AVR5 stack size.
  */
 #define ENV_STACKSIZE 128
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR idle stack size.
+ * \brief AVR5 idle stack size.
  */
 #define ENV_STACKSIZE_IDLE 128
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR stack size(total).
+ * \brief AVR5 stack size(total).
  */
 #define AVR_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR context init macro.
+ * \brief AVR5 context init macro.
  */
 #define ENV_CONTEXT_INIT(context, stacksize, function) \
-	avr_context_init(context, stacksize, function)
+	avr5_context_init(context, stacksize, function)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR dispatch macro.
+ * \brief AVR5 dispatch macro.
  */
 #define ENV_CONTEXT_DISPATCH(context) \
-	avr_context_dispatch((avr_context_t *)(context))\
+	avr5_context_dispatch((avr5_context_t *)(context))\
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR context cookie.
+ * \brief AVR5 context cookie.
  */
 #define AVR_CONTEXT_COOKIE 0x55AA
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR context save macro.
+ * \brief AVR5 context save macro.
  *
  * Saves the current context.
  */
@@ -202,7 +203,7 @@ void avr_idle(void);
 		"brne	.Lcontext_save_fail%=\n"\
 		"jmp	.Lcontext_save_ok%=\n"\
 		".Lcontext_save_fail%=:\n"\
-		"call	avr_context_cookie_panic\n"\
+		"call	avr5_context_cookie_panic\n"\
 		".Lcontext_save_ok%=:\n"\
 		::\
 			"I" (_SFR_IO_ADDR(SREG)),\
@@ -216,7 +217,7 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief AVR context restore macro.
+ * \brief AVR5 context restore macro.
  *
  * Should restore the current context.
  */
@@ -235,7 +236,7 @@ void avr_idle(void);
 		"brne	.Lcontext_restore_fail%=\n"\
 		"jmp	.Lcontext_restore_ok%=\n"\
 		".Lcontext_restore_fail%=:\n"\
-		"call	avr_context_cookie_panic\n"\
+		"call	avr5_context_cookie_panic\n"\
 		".Lcontext_restore_ok%=:\n"\
 		"ld		r28, Z\n"\
 		"ldd	r29, Z+1\n"\
@@ -289,60 +290,60 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief The AVR idle macro.
+ * \brief AVR5 idle macro.
  */
 #define ENV_IDLE() \
-	avr_idle()
+	avr5_idle()
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer start macro.
+ * \brief AVR5 timer start macro.
  */
 #define ENV_TIMER_START() TCCR1B = 0x04
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer set macro.
+ * \brief AVR5 timer set macro.
  */
 #define ENV_TIMER_SET(time) \
-	avr_timer_set(time)
+	avr5_timer_set(time)
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer get macro.
+ * \brief AVR5 timer get macro.
  */
 #define ENV_TIMER_GET() \
-	avr_timer_get()
+	avr5_timer_get()
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer hz macro.
+ * \brief AVR5 timer hz macro.
  */
 #define ENV_TIMER_HZ 62500UL
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer count macro.
+ * \brief AVR5 timer count macro.
  */
 #define ENV_TIMER_COUNT 0x10000
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timestamp macro.
+ * \brief AVR5 timestamp macro.
  */
 #define ENV_TIMESTAMP() \
-	avr_timestamp()
+	avr5_timestamp()
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR usec macro.
+ * \brief AVR5 usec macro.
  */
 #define ENV_USEC(n) \
 	(((n)*ENV_TIMER_HZ)/1000000UL)
@@ -350,7 +351,7 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief The AVR msec macro.
+ * \brief AVR5 msec macro.
  */
 #define ENV_MSEC(n) \
 	(((n)*ENV_TIMER_HZ)/1000UL)
@@ -358,7 +359,7 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief The AVR sec macro.
+ * \brief AVR5 sec macro.
  */
 #define ENV_SEC(n) \
 	((n)*ENV_TIMER_HZ)
@@ -366,13 +367,13 @@ void avr_idle(void);
 /* ************************************************************************** */
 
 /**
- * \brief The AVR startup macro.
+ * \brief AVR5 startup macro.
  */
 #define ENV_STARTUP(function) \
 __attribute__((__naked__)) int main(void)\
 {\
-	extern char avr_stack[];\
-	SP = (unsigned short)&avr_stack[AVR_STACKSIZE-1];\
+	extern char avr5_stack[];\
+	SP = (unsigned short)&avr5_stack[AVR_STACKSIZE-1];\
 	tt_init();\
 	function();\
 	tt_run();\
@@ -382,14 +383,33 @@ __attribute__((__naked__)) int main(void)\
 /* ************************************************************************** */
 
 /**
- * \brief The AVR protect function.
+ * \brief AVR5 interrupt macro.
+ *
+ * Used to install an interrupt in the AVR5 environment, should not be
+ * used if no interaction with the kernel is needed.
+ */
+#define ENV_INTERRUPT(vector, function) \
+__attribute__((naked, signal, used)) vector(void)\
+{\
+	extern env_time_t avr5_timestamp;\
+	AVR_CONTEXT_SAVE(avr5_interrupt_return);\
+	avr5_timestamp = avr5_timer_get();\
+	function();\
+	tt_schedule();\
+	AVR_CONTEXT_RESTORE();\
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief AVR5 protect function.
  *
  * If state is non-zero then enter protected mode, otherwise leave protected
  * mode.
  *
  * \param state Defines if we should protect or not.
  */
-static inline void avr_protect(int state)
+static inline void avr5_protect(int state)
 {
 	if (state)
 		cli();
@@ -400,11 +420,11 @@ static inline void avr_protect(int state)
 /* ************************************************************************** */
 
 /**
- * \brief The AVR isprotected function.
+ * \brief AVR5 isprotected function.
  *
  * \return non-zero if protected, zero otherwise.
  */
-static inline char avr_isprotected(void)
+static inline char avr5_isprotected(void)
 {
 	return !(SREG & (1 << SREG_I));
 }
@@ -412,38 +432,38 @@ static inline char avr_isprotected(void)
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timer get function.
+ * \brief AVR5 timer get function.
  *
  * Return the current time, takes overflow into account.
  * 
  * \return The current time.
  */
-static inline env_time_t avr_timer_get(void)
+static inline env_time_t avr5_timer_get(void)
 {
-	extern env_time_t avr_timer_base;
+	extern env_time_t avr5_timer_base;
 #if 0
 	env_time_t time;
 
-	time = avr_timer_base + TCNT1;
+	time = avr5_timer_base + TCNT1;
 	if (TIFR1 & (1<<TOV1))
-		time = avr_timer_base + ENV_TIMER_COUNT + TCNT1;
+		time = avr5_timer_base + ENV_TIMER_COUNT + TCNT1;
 	
 	return time;
 #endif
-	return avr_timer_base + TCNT1;
+	return avr5_timer_base + TCNT1;
 }
 
 /* ************************************************************************** */
 
 /**
- * \brief The AVR timestamp function.
+ * \brief AVR5 timestamp function.
  *
  * \return The timestamp of the most recent interrupt.
  */
-static inline env_time_t avr_timestamp(void)
+static inline env_time_t avr5_timestamp(void)
 {
-	extern env_time_t avr_timer_timestamp;
-	return avr_timer_timestamp;
+	extern env_time_t avr5_timer_timestamp;
+	return avr5_timer_timestamp;
 }
 
 #endif

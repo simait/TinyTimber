@@ -4,7 +4,7 @@
 /**
  * \brief The AVR context typedef.
  */
-typedef struct avr_context_t
+typedef struct avr5_context_t
 {
 	/**
 	 * \brief The stackpointer.
@@ -15,12 +15,12 @@ typedef struct avr_context_t
 	 * \brief The magic cookie pointer.
 	 */
 	unsigned short *cookie;
-} avr_context_t;
+} avr5_context_t;
 
 /**
  * \brief Export of avr context as env_context_t.
  */
-typedef avr_context_t env_context_t;
+typedef avr5_context_t env_context_t;
 
 /**
  * \brief The AVR time typedef.

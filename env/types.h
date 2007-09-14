@@ -6,7 +6,7 @@
 #elif defined ENV_MSP430
 #	include "msp430/types.h"
 #elif defined ENV_AVR
-#	include "avr/types.h"
+#	include "avr5/types.h"
 #elif defined ENV_PIC18
 #	include "pic18/types.h"
 #elif defined ENV_ARM7
