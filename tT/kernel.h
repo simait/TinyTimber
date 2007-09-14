@@ -67,7 +67,7 @@ extern env_context_t *tt_current;
 /* ************************************************************************** */
 
 void tt_interrupt(void);
-void tt_expired(env_time_t);
+int tt_expired(env_time_t);
 
 /* ************************************************************************** */
 
