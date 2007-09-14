@@ -279,6 +279,8 @@ void avr5_idle(void)
 	tt_current->cookie = (void *)&avr5_stack[AVR_STACKSIZE-ENV_STACKSIZE_IDLE];
 	*tt_current->cookie = AVR_CONTEXT_COOKIE;
 
+	avr5_print("Entering idle-mode\n");
+
 	/* Leave protected mode before we go to sleep. */
 	avr5_protect(0);
 
@@ -297,8 +299,10 @@ void avr5_idle(void)
 		 */
 		cli();
 		set_sleep_mode(SLEEP_MODE_IDLE);
+		sleep_enable();
 		sei();
-		sleep_mode();
+		sleep_cpu();
+		sleep_disable();
 	}
 }
 

@@ -1,16 +1,47 @@
 ################################################################################
-# Make sure the ROOT variable is set as it defines where the root of
+# Setup some helper macros to check for this such as if a variable is
+# defined or not, setting the correct output of an object file etc.
+################################################################################
+
+# Simple reuired function, not pretty to call it but at least it's
+# somewhat more clear what it means/does.
+define required
+ifeq ($$(flavor $1),undefined)
+$$(error $1 was undefined)
+endif
+endef
+
+# Fix the location of the object files for a given set of object files.
+# We must also set the output prefix here, before we mess it up.
+OUTPUT_PREFIX := $(ENV_ARCH)/$(ENV_MCU)-
+define object_output
+$(addprefix $(OUTPUT_PREFIX),$(notdir $1))
+endef
+
+# function for changing the suffix of a set of files to .o
+define object_convert
+$(patsubst %.c,%.o, $(patsubst %.S,%.o,$1))
+endef
+
+# Target rule for a given source file
+define object_target
+$(call object_output,$(call object_convert,$1)):
+	$$(CC) $$(CFLAGS) $1 -c -o $$@
+endef
+
+################################################################################
+# Make sure the TT_ROOT variable is set as it defines where the root of
 # the tinyTimber code is located.
 ################################################################################
 
-ifndef TT_ROOT
-$(error Variable TT_ROOT was not defined.)
-endif
+# Variable TT_ROOT is required.
+$(eval $(call required,TT_ROOT))
 
 # Fix the kernel sources etc.
-TT_SRC	= $(TT_ROOT)/kernel.c
-TT_OBJ	= $(patsubst %.c, %.o, $(TT_SRC))
-TT_INC	= -I./$(TT_ROOT)
+TT_SRC = $(TT_ROOT)/kernel.c
+TT_OBJ = $(call object_convert, $(TT_SRC))
+TT_OBJ := $(call object_output, $(TT_OBJ))
+TT_INC = -I./$(TT_ROOT)
 
 ################################################################################
 # Make sure the Environment related variables are defined. This is a
@@ -19,23 +50,18 @@ TT_INC	= -I./$(TT_ROOT)
 
 # ENV_ROOT is the root to the given environment, we should make sure
 # it is set.
-ifndef ENV_ROOT
-$(error ENV_ROOT was not set.)
-endif
+$(eval $(call required,ENV_ROOT))
 
 # Include the environment Makefile.
 include $(ENV_ROOT)/$(ENV_ARCH)/Makefile
 
 # ENV_SRC should contain the sources for the environment.
-ifndef ENV_SRC
-$(error Variable ENV_SRC was not defined.)
-endif
-ENV_OBJ	= $(patsubst %.c, %.o, $(patsubst %.S, %.o, $(ENV_SRC)))
+$(eval $(call required,ENV_SRC))
+ENV_OBJ	= $(call object_convert,$(ENV_SRC))
+ENV_OBJ := $(call object_output,$(ENV_OBJ))
 
 # ENV_INC should contain the environment specific includes.
-ifndef ENV_INC
-$(error Variable ENV_INC was not defined.)
-endif
+$(eval $(call required,ENV_INC))
 
 ################################################################################
 # Create the default targets, all should build all the environment
@@ -44,12 +70,15 @@ endif
 ################################################################################
 
 ifdef APP_SRC
+# Do not use required here since we want specail message...
 ifndef APP_ELF
 $(error APP_SRC was defined but not APP_ELF.)
 endif
+APP_ELF := $(OUTPUT_PREFIX)$(APP_ELF)
 APP_HEX = $(patsubst %.elf, %.hex, $(APP_ELF))
 APP_BIN = $(patsubst %.elf, %.bin, $(APP_ELF))
-APP_OBJ = $(patsubst %.c, %.o, $(patsubst %.S, %.o, $(APP_SRC)))
+APP_OBJ = $(call object_convert, $(APP_SRC))
+APP_OBJ := $(call object_output, $(APP_OBJ))
 endif
 
 ################################################################################
@@ -57,11 +86,14 @@ endif
 # is defined).
 ################################################################################
 
+.SUFFIXES:
+
 # Make sure the ENV_MCU variable is set since it's /very/ vital for
 # compiling the code.
-ifndef ENV_MCU
-$(error Variable ENV_MCU was not set.)
-endif
+$(eval $(call required,ENV_MCU))
+
+# Setup the output directory for the object files.
+$(eval $(shell mkdir -p $(ENV_ARCH)))
 
 # Only include app if APP_SRC was defined.
 ifdef APP_SRC
@@ -72,17 +104,26 @@ else
 all: env tt
 endif
 
+# Generate the targets for each environment source file.
+$(foreach i,$(ENV_SRC),$(eval $(call object_target,$(i))))
+
 ENV_TT_FLAGS:=$(sort $(ENV_CFLAGS) $(ENV_INC) $(TT_INC) $(ENV_DEF) $(ENV_MCU))
 
 env: CFLAGS=$(ENV_TT_FLAGS)
 env: ASFLAGS=$(ENV_TT_FLAGS)
 env: $(ENV_OBJ)
 
+# Generate the targets for each tinyTimber source file.
+$(foreach i,$(TT_SRC),$(eval $(call object_target,$i)))
+
 tt:	CFLAGS=$(ENV_TT_FLAGS)
 tt: ASFLAGS=$(ENV_TT_FLAGS)
 tt: $(TT_OBJ)
 
 ifdef APP_SRC
+# Generate the targets for each application source file.
+$(foreach i,$(APP_SRC),$(eval $(call object_target,$(i))))
+
 ENV_TT_APP_FLAGS:=$(sort $(ENV_TT_FLAGS) $(APP_CFLAGS) $(APP_INC) $(APP_DEF))
 app: CFLAGS=$(ENV_TT_APP_FLAGS)
 app: ASFLAGS=$(ENV_TT_APP_FLAGS)
@@ -99,8 +140,8 @@ endif
 
 ifdef APP_SRC
 clean:
-	rm -rf $(TT_OBJ) $(ENV_OBJ) $(APP_OBJ) $(APP_ELF)
+	rm -f $(TT_OBJ) $(ENV_OBJ) $(APP_OBJ) $(APP_ELF)
 else
 clean:
-	rm -rf $(TT_OBJ) $(ENV_OBJ)
+	rm -f $(TT_OBJ) $(ENV_OBJ)
 endif

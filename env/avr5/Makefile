@@ -31,5 +31,5 @@ ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/env.c
 
 ENV_INC			= -I$(ENV_ROOT)
 ifndef ENV_CFLAGS
-ENV_CFLAGS		= -O2 -Wall
+ENV_CFLAGS		= -O2 -Wall -g
 endif

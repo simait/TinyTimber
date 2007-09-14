@@ -555,10 +555,10 @@ schedule_new:
  *
  * \param now The time that caused the interrupt.
  */
-void ENV_CODE_FAST tt_expired(env_time_t now)
+int ENV_CODE_FAST tt_expired(env_time_t now)
 {
 	tt_message_t *tmp;
-	tt_mesasge_t *old_head = messages.active;
+	tt_message_t *old_head = messages.active;
 
 	TT_SANITY(ENV_ISPROTECTED());
 

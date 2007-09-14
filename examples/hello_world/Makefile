@@ -58,8 +58,8 @@ flash: $(APP_ELF)
 	msp430-jtag --no-close --elf -e $(APP_ELF)
 endif
 
-# avr specific targets.
-ifeq ($(ENV_ARCH), avr)
+# avr5 specific targets.
+ifeq ($(ENV_ARCH), avr5)
 ifdef APP_HEX
 $(APP_HEX): $(APP_ELF)
 	avr-objcopy -R .eeprom -O ihex $(APP_ELF) $(APP_HEX)
@@ -69,6 +69,6 @@ flash: $(APP_HEX)
 	
 debug:
 	avarice --mkII --detach --jtag usb :2000
-	avr-gdb -x $(ENV_ROOT)/avr/gdbrc
+	avr-gdb -x $(ENV_ROOT)/$(ENV_ARCH)/gdbrc
 endif
 endif
