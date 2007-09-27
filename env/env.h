@@ -57,6 +57,16 @@
 #	define ENV_CODE_FAST
 #endif
 
+/**
+ * \brief Environment debug macro.
+ *
+ * The debug macro is NOT neccesary but can be helpfull.
+ */
+  
+#ifndef ENV_DEBUG
+#	define ENV_DEBUG(msg) ((void)0)
+#endif
+
 /* ************************************************************************** */
 /* *********************************** SANITY ******************************* */
 /* ************************************************************************** */
@@ -71,10 +81,6 @@
 
 #ifndef ENV_ISPROTECTED
 #	error Environment did not define ENV_PROTECTED().
-#endif
-
-#ifndef ENV_DEBUG
-#	error Environment did not define ENV_DEBUG().
 #endif
 
 #ifndef ENV_PANIC
