@@ -1,172 +1,134 @@
 /**
- * \brief Skeleton environment.
+ * \brief MIPS Environment.
  *
- * Just used for compile testing and perhaps as a template for a new
- * environment. Should compile but does not run.
+ * Environment, specially for syncsim, NOT for a real MIPS.
  */
-#ifndef ENV_SKEL_ENV_H_
-#define ENV_SKEL_ENV_H_
+#ifndef ENV_MIPS_ENV_H_
+#define ENV_MIPS_ENV_H_
+
+#include <mips/xcpt.h>
+
+void mips_init(void);
+void mips_idle(void);
+void mips_context_init(mips_context_t *, size_t, tt_thread_function_t);
+void mips_context_dispatch(mips_context_t *);
+void mips_timer_start(void);
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment initialization.
- *
- * Should take care of initializing the environment setting up any hardware
- * required by the environment such as serial ports, timers etc.
+ * \brief Macro that indicates that the context is never saved, we must
+ * always invoke ENV_CONTEXT_DISPATCH().
  */
-#define ENV_INIT()
+#define ENV_CONTEXT_NOT_SAVED 1
 
 /* ************************************************************************** */
 
 /**
- * \brief Environemnt debug macro.
+ * \brief MIPS init macro.
  *
- * May print the string pointer to by msg but it is not required.
+ * Shuold leave the environment in a fully usuable state.
  */
-#define ENV_DEBUG(msg)
+#define ENV_INIT() \
+	mips_init()
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment panic macro.
+ * \brief MIPS protect macro.
  *
- * Must indicate that a critical error has occured and halt or reset the
- * execution.
+ * Should place the MIPS processor in a protected state.
  */
-#define ENV_PANIC(msg)
+#define ENV_PROTECT(state) \
+	mips_protect(state)
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment protect macro.
- *
- * Should place the environment in a protected mode when state is non-zero
- * otherwise it should leave protected mode.
+ * \brief MIPS isprotected macro.
  */
-#define ENV_PROTECT(state) (void)(state)
+#define ENV_ISPROTECTED() \
+	mips_isprotected()
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment isprotected macro.
+ * \brief  MIPS panic macro.
  *
- * Should evaluate to non-zero when the environment is in a protected mode
- * otherwise it should evaluate to zero.
+ * Should indicate that something went horribly wrong.
  */
-#define ENV_ISPROTECTED() 0
+#define ENV_PANIC(msg) \
+	mips_panic(msg)
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment number of threads macro.
- *
- * The number of threads that this environment can manage. Defined here to
- * one so that we can make a "fake" compile of the environment without
- * warning.
+ * \brief MIPS stack size.
  */
-#define ENV_NUM_THREADS 1
+#define ENV_STACKSIZE 512
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment context init macro.
- *
- * Should initialize a context with a certain amount of stack and running the
- * function. The definition here is just because we wish to compile the
- * skeleton environment without warnings.
+ * \brief MIPS idle stack size.
  */
-#define ENV_CONTEXT_INIT(context, stacksize, function) (function)()
+#define ENV_STACKSIZE_IDLE 512
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment context dispatch macro.
- *
- * Should suspend the current context and start executing the specified
- * context. Must change the tt_current variable.
+ * \brief MIPS number of threads.
  */
-#define ENV_CONTEXT_DISPATCH(context)
+#define ENV_NUM_THREADS	5
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment idle macro.
- *
- * Should place the environment in an "idle" state. Can be busy waiting or
- * some power-saving mode. The environment must initialize the context pointerd
- * to by tt_current so that the kernel can dispatch another thread.
+ * \brief MIPS total stack size.
  */
-#define ENV_IDLE()
+#define MIPS_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment timer start macro.
+ * \brief MIPS context init macro.
  *
- * Should start the environment timer service.
+ * Should render the given context into a usable state.
  */
-#define ENV_TIMER_START()
+#define ENV_CONTEXT_INIT(context, stacksize, function) \
+	mips_context_init(context, stacksize, function)
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment timer set macro.
+ * \brief MIPS context dispatch macro.
  *
- * Should set the time when tt_expired(time) should be called.
+ * Should save current context and dispatch the next.
  */
-#define ENV_TIMER_SET(time)
+#define ENV_CONTEXT_DISPATCH(context) \
+	mips_context_dispatch((mips_context_t *)context)
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment timer get macro.
- *
- * Should evaluate to the current time.
+ * \brief MIPS context cookie, magic number.
  */
-#define ENV_TIMER_GET() 0
+#define MIPS_CONTEXT_COOKIE 0x55aa55aa
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment timestamp macro.
+ * \brief MIPS idle macro.
  *
- * Should evaluate to the time when the most recent interrupt was triggered.
+ * Should enter the idle state, enable itnerrupts etc.
  */
-#define ENV_TIMESTAMP() 0
+#define ENV_IDLE() \
+	mips_idle()
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment usec macro.
- *
- * The given number of usecs should be converted to time-base of
- * the environment.
- */
-#define ENV_USEC(n) 0
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment msec macro.
- *
- * The given number of msecs should be converted to time-base of
- * the environment.
- */
-#define ENV_MSEC(n) 0
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment sec macro.
- *
- * The given number of secs should be converted to time-base of
- * the environment.
- */
-#define ENV_SEC(n) 0
-
-/**
- * \brief Environment startup macro.
+ * \brief MIPS startup macro.
  *
  * Should make the environment run the given function upon startup and/or
  * reset.
@@ -174,8 +136,155 @@
 #define ENV_STARTUP(function) \
 int main(void)\
 {\
-	for (;;);\
+	tt_init();\
+	function();\
+	tt_run();\
 	return 0;\
 } char dummy /* Force semi-colon. */
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer start macro.
+ *
+ * Simply starts the timer.
+ */
+#define ENV_TIMER_START() \
+	mips_timer_start()
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer start get macro.
+ *
+ * Should return the current time.
+ */
+#define ENV_TIMER_GET() \
+	mips_timer_get()
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer start set macro.
+ *
+ * Should set the next point in time when we will receive a timer
+ * itnerrupt.
+ */
+#define ENV_TIMER_SET(time) \
+	mips_timer_set(time)
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer timerstamp macro.
+ *
+ * Should return the time when the previous interrupt was handled.
+ */
+#define ENV_TIMESTAMP() \
+	mips_timer_timestamp()
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer resolution macro.
+ */
+#define ENV_TIMER_HZ() \
+	0x8000 /* 32768 */
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer usec macro.
+ */
+#define ENV_USEC(val) \
+	(((env_time_t)val*ENV_TIMER_HZ())/1000000UL)
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer msec macro.
+ */
+#define ENV_MSEC(val) \
+	(((env_time_t)val*ENV_TIMER_HZ())/1000UL)
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer sec macro.
+ */
+#define ENV_SEC(val) \
+	((env_time_t)val*ENV_TIMER_HZ())
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS protect function, invoked by ENV_PROTECT.
+ *
+ * \param state zero to leave protected mode, non-zero enter protected mode.
+ */
+static inline void mips_protect(int state)
+{
+	int tmp;
+	if (state)
+	{
+		__asm__ __volatile(
+			"mfc0	%0, $12\n"
+			"andi	%0, %0, 0xfffe\n"
+			"mtc0	%0, $12\n"
+			: "=r" (tmp)
+			);
+	}
+	else
+	{
+		__asm__ __volatile (
+			"mfc0	%0, $12\n"
+			"ori	%0, %0, 1\n"
+			"mtc0	%0, $12\n"
+			: "=r" (tmp)
+			);
+	}
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS isprotected function, invoked by ENV_ISPROTECTED().
+ */
+static inline int mips_isprotected(void)
+{
+	int tmp;
+	__asm__ __volatile (
+		"mfc0	%0, $12\n"
+		"andi	%0, 1\n"
+		: "=r" (tmp)
+		);
+	return !tmp;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer get function, invoked by ENV_TIMER_GET().
+ *
+ * \return Returns the current time.
+ */
+static inline env_time_t mips_timer_get(void)
+{
+	extern volatile unsigned int TMR_CNT;
+	return TMR_CNT;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS timer timestamp function, invoked by ENV_TIMESTAMP().
+ *
+ * \return Returns the time when the last interrupt was handled.
+ */
+static inline env_time_t mips_timer_timestamp(void)
+{
+	extern env_time_t mips_timestamp;
+	return mips_timestamp;
+}
 
 #endif

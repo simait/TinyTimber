@@ -35,7 +35,7 @@ endif
 
 ################################################################################
 # Ok, some sanity check of the TT_CFLAGS and APP_CFLAGS is needed, we must
-# use -mthumb-interwork -nostartfiles on both.
+# use -nostdlib and -nostartfiles on both.
 ################################################################################
 TT_CFLAGS		+= -nostartfiles -nostdlib
 APP_CFLAGS		+= -nostartfiles -nostdlib
