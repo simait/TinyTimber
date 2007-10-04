@@ -2,9 +2,9 @@
 # ARCH is required to determine which files to build etc.
 ################################################################################
 
-#ENV_ARCH=avr
+#ENV_ARCH=avr5
 #ENV_ARCH=msp430
-#ENV_ARCH=arm-elf
+#ENV_ARCH=arm7
 
 ifndef ENV_ARCH
 $(error Required variable ENV_ARCH was not defined.)
@@ -34,7 +34,7 @@ APP_ELF=main.elf
 
 #ENV_MCU=at90can128
 #ENV_MCU=msp430x1611
-#ENV_MCU=arm7tdimi
+#ENV_MCU=arm7tdmi
 
 ifndef ENV_MCU
 $(error Required variable ENV_MCU was not defined.)
