@@ -542,7 +542,12 @@ schedule_new:
 	 */
 	DEQUEUE(threads.inactive, tmp);
 	ENQUEUE(threads.active, tmp);
+
+#if defined ENV_CONTEXT_NOT_SAVED
+	ENV_CONTEXT_DISPATCH(&tmp->context);
+#else
 	tt_current = &tmp->context;
+#endif
 }
 
 /* ************************************************************************** */
