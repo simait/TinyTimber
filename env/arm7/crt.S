@@ -147,27 +147,27 @@ __init:
 	/* Undefined instruction mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_UNDEF
 	mov		sp, r0
-	sub		r0, #ARM_UNDEF_STACK_SIZE
+	sub		r0, r0, #ARM_UNDEF_STACK_SIZE
 
 	/* Abort mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_ABORT
 	mov		sp, r0
-	sub		r0, #ARM_ABORT_STACK_SIZE
+	sub		r0, r0, #ARM_ABORT_STACK_SIZE
 
 	/* Fast interrupt mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_FIQ
 	mov		sp, r0
-	sub		r0, #ARM_FIQ_STACK_SIZE
+	sub		r0, r0, #ARM_FIQ_STACK_SIZE
 
 	/* Interrrupt mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_IRQ
 	mov		sp, r0
-	sub		r0, #ARM_IRQ_STACK_SIZE
+	sub		r0, r0, #ARM_IRQ_STACK_SIZE
 
 	/* Supervisor mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_SUPERVISOR
 	mov		sp, r0
-	sub		r0, #ARM_SUPERVISOR_STACK_SIZE
+	sub		r0, r0, #ARM_SUPERVISOR_STACK_SIZE
 
 	/* 
 	 * This is just a slight sanity check so we don't mess things up. We can't

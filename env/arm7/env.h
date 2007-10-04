@@ -461,8 +461,8 @@ static inline void arm7_protect(int state)
 	asm volatile(
 		"cmp	%1, #0\n"
 		"mrs	%0, CPSR\n"
-		"orrne	%0, #0x80|0x40\n"
-		"biceq	%0, #0x80|0x40\n"
+		"orrne	%0, %0, #0x80|0x40\n"
+		"biceq	%0, %0, #0x80|0x40\n"
 		"msr	CPSR_c, %0\n"
 		: "=r" (tmp)
 		: "r" (state)
@@ -486,7 +486,7 @@ static inline int arm7_isprotected(void)
 	int tmp;
 	asm volatile(
 			"mrs	%0, CPSR\n"
-			"and	%0, #0x80|0x40\n"
+			"and	%0, %0, #0x80|0x40\n"
 			: "=r" (tmp)
 			);
 	return tmp;
