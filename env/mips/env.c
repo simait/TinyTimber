@@ -112,8 +112,8 @@ void mips_timer_set(env_time_t next)
 	TMR_CTL &= ~(TMR_CTL_CIE|TMR_CTL_CFG);
 	TMR_CMP = next;
 	TMR_CTL |= TMR_CTL_CIE;
-	while ((TMR_CMP < TMR_CNT) && !(TMR_CTL & TMR_CTL_CFG))
-		TMR_CMP = TMR_CNT + 1;
+	if (TMR_CMP <= TMR_CNT && !(TMR_CTL & TMR_CTL_CFG))
+		TMR_CTL |= TMR_CTL_CFG;
 }
 
 /* ************************************************************************** */
