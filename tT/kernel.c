@@ -1,4 +1,34 @@
 /*
+ * Copyright (c) 2007, Per Lindgren, Johan Eriksson, Johan Nordlander,
+ * Simon Aittamaa.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Luleå University of Technology nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
  * C-lib headers, not needed but makes life easier.
  */
 #include <string.h>
@@ -323,7 +353,7 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		 * always control when/how interrupts are enabled so we must always
 		 * disable them here.
 		 *
-		 * Note entierly true anymore but let's keep it for now.
+		 * Not entierly true anymore but let's keep it for now.
 		 */
 		ENV_PROTECT(1);
 
@@ -418,6 +448,7 @@ yield:
 				tmp = tmp->waits_for->owned_by;
 			TT_SANITY(tmp);
 			ENV_CONTEXT_DISPATCH(tmp);
+			TT_SANITY(ENV_ISPROTECTED());
 		}
 		else
 		{
@@ -425,6 +456,7 @@ yield:
 			 * No pre-empted threads, dispatch the idle thread.
 			 */
 			ENV_CONTEXT_DISPATCH(threads.idle);
+			TT_SANITY(ENV_ISPROTECTED());
 		}
 
 		/*
@@ -587,6 +619,7 @@ schedule_new:
 
 #if defined ENV_CONTEXT_NOT_SAVED
 	ENV_CONTEXT_DISPATCH(&tmp->context);
+	TT_SANITY(ENV_ISPROTECTED());
 #else
 	tt_current = &tmp->context;
 #endif
@@ -698,7 +731,6 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		 * released.
 		 */
 		ENV_CONTEXT_DISPATCH(tmp);
-
 		TT_SANITY(ENV_ISPROTECTED());
 
 		/*
@@ -731,7 +763,6 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		to->wanted_by = NULL;
 		tmp->waits_for = NULL;
 		ENV_CONTEXT_DISPATCH(tmp);
-
 		TT_SANITY(ENV_ISPROTECTED());
 	}
 
