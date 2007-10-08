@@ -89,6 +89,48 @@ struct tt_message_t
 
 /* ************************************************************************** */
 
+#if TT_CLIB_DISABLE
+/**
+ * \brief memset implementation.
+ * 
+ * In case we don't want any CLIB requirements in the kernel.
+ *
+ * \param ptr pointer to the data.
+ * \param c the constant to set each byte to.
+ * \param n the number of bytes to set.
+ * \return a pointer to ptr.
+ */
+static void *memset(void *ptr, int n, size_t n)
+{
+	signed char tmp = ptr;
+	while (n--)
+		*((signed char *)tmp++) = n;
+	return ptr;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief memcpy implementation.
+ *
+ * In case we don't want any CLIB dependency in the kernel.
+ *
+ * \param dest Destionation pointer.
+ * \param src Source pointer.
+ * \param n Number of byte to copy.
+ * \return pointer to dest.
+ */
+static void memcpy(void *dest, const void *src, size_t n)
+{
+	unsigned char *d = dest, *s = src;
+	while (n--)
+		*d++ = *s++;
+	return dest;
+}
+#endif
+
+/* ************************************************************************** */
+
 /**
  * \brief tinyTimber idle context.
  */
@@ -790,16 +832,7 @@ ENV_CODE_FAST void tt_action(
 
 	TT_SANITY(size <= TT_ARGS_SIZE);
 
-#if TT_CLIB_DISABLE
-	{
-		unsigned char *t0 = (void *)&msg->arg;
-		unsigned char *t1 = (void *)arg;
-		while (size--)
-			*t0++ = *t1++;
-	}
-#else
 	memcpy(&msg->arg, arg, size);
-#endif
 
 	ENV_PROTECT(1);
 
