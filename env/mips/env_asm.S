@@ -4,6 +4,7 @@
 .extern mips_panic
 .extern mips_stack_start
 .extern mips_timer_interrupt
+.extern TMR_CTL
 
 .equ MIPS_CONTEXT_COOKIE,0x55aa55aa
 
@@ -11,6 +12,12 @@
 
 .section .kdata:
 .align 1
+
+interrupt_panic:
+	.asciz "Invalid interrupt, not timer compare and no other sources.\n"
+
+interrupt_handler_panic:
+	.asciz "Invalid interrupt (NULL).\n"
 
 context_cookie_panic:
 	.asciz "Context cookie corrupter.\n"
@@ -59,9 +66,56 @@ mips_interrupt:
 	#	There might be other interrupts at some point in the
 	#	future...
 
-	la		$26, mips_timer_interrupt
-	jalr	$26
+	mfc0	$26, $12
 	nop
+	andi	$26, $26, 0xfc00
+	srl		$26, $26, 0x0a
+
+	# Check the timer interrupt first.
+	la		$27, TMR_CTL
+	lw		$27, 0($27)
+	nop
+	andi	$27, $27, 0x10
+	beq		$27, $0, .Linterrupt_other
+	nop
+
+	la		$27, mips_timer_interrupt
+	jalr	$27
+	nop
+
+	b		.Linterrupt_done
+	nop
+
+.Linterrupt_other:
+
+	andi	$26, $26, 0x3e
+	beq		$26, $0, .Linterrupt_panic
+	nop
+	la		$27, mips_interrupt_handler
+	lw		$27, 0($27)
+	nop
+	beq		$27, $0, .Linterrupt_invalid_handler
+	nop
+	jalr	$27
+	nop
+	b		.Linterrupt_done
+	nop
+
+.Linterrupt_invalid_handler:
+
+	la		$4, interrupt_handler_panic
+	la		$5, mips_panic
+	jr		$5
+	nop
+
+.Linterrupt_panic:
+
+	la		$4, interrupt_panic
+	la		$5, mips_panic
+	jr		$5
+	nop
+
+.Linterrupt_done:
 
 .set noat
 	lw		$1, 0($sp)
@@ -130,8 +184,9 @@ mips_context_dispatch:
 	nop
 
 .Lcontext_cookie_error:
-	la	$4, context_cookie_panic
-	j		mips_panic
+	la		$4, context_cookie_panic
+	la		$5, mips_panic
+	jr		$5
 	nop
 
 .Lcontext_cookie_ok:
@@ -151,5 +206,5 @@ mips_context_dispatch:
 	lw		$31, 40($29)
 	lw		$30, 36($29)
 	jr		$31
-	subu	$29, $29, 48
+	addu	$29, $29, 48
 

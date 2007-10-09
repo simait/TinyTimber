@@ -13,7 +13,7 @@ OUTPUT_FORMAT("elf32-bigmips", "elf32-bigmips",
 	      "elf32-littlemips")
 OUTPUT_ARCH(mips)
 ENTRY(__start)
- SEARCH_DIR(/usr/local/sde5/sde/lib);
+SEARCH_DIR(/usr/local/sde5/sde/lib);
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 
@@ -28,6 +28,10 @@ SECTIONS
   .ktext : { *(.ktext) }
   . = 0x80002000;
   .kdata : { *(.kdata) }
+
+  IO_CTL  = 0xffff0000;
+  IO_IN   = 0xffff0004;
+  IO_OUT  = 0xffff0008;
 
   TMR_CTL = 0xffff0010;
   TMR_CNT = 0xffff0014;

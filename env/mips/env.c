@@ -55,7 +55,29 @@ extern volatile unsigned int TMR_CNT;
  * SyncSim CMP register layout.
  * bit 0-31: current compare value.
  */
-extern  volatile unsigned int TMR_CMP;
+extern volatile unsigned int TMR_CMP;
+
+/*
+ * Syncsim IO CTL register.
+ */
+extern volatile unsigned int IO_CTL;
+
+/*
+ * Syncsim IO IN register.
+ */
+extern volatile unsigned int IO_IN;
+
+/*
+ * Syncsim IO OUT register.
+ */
+extern volatile unsigned int IO_OUT;
+
+/*
+ * MIPS interrupt table, there are 6 interrupt sources but only one vector.
+ * The table is usually populated manually by the user program.
+ */
+void mips_timer_interrupt(void);
+void (*mips_interrupt_handler)(void) = NULL;
 
 /** \endcond */
 
@@ -71,7 +93,7 @@ void mips_init(void)
 
 	__asm__ __volatile (
 		"mfc0	%0, $12\n"
-		"ori	%0, 0x400\n"
+		"ori	%0, 0xc00\n"
 		"mtc0	%0, $12\n"
 		: "=r" (tmp)
 		);
@@ -97,7 +119,7 @@ void mips_panic(const char * const msg)
  */
 void mips_timer_start(void)
 {
-	TMR_CTL |= TMR_CTL_ENABLE|TMR_CTL_OIE;
+	TMR_CTL |= TMR_CTL_ENABLE;
 }
 
 /* ************************************************************************** */
@@ -136,7 +158,7 @@ void mips_context_init(
 	if (mips_stack_offset < stacksize)
 		mips_panic("mips_context_init(): Out of stack space.\n");
 
-	context->sp = (void *)&mips_stack[mips_stack_offset];
+	context->sp = (void *)&mips_stack[mips_stack_offset-4];
 	context->cookie = (void *)&mips_stack[mips_stack_offset-stacksize];
 	*context->cookie = MIPS_CONTEXT_COOKIE;
 	*--context->sp = (unsigned int)function;
@@ -155,22 +177,6 @@ void mips_context_init(
 	mips_stack_offset -= stacksize;
 }
 
-#if 0
-/* ************************************************************************** */
-
-/**
- * \brief MIPS context dispatch function.
- *
- * Should save current context to tt_current, set tt_current to the new
- * context and retore that context.
- *
- * \param context The new context.
- */
-void mips_context_dispatch(mips_context_t *context)
-{
-}
-#endif
-
 /* ************************************************************************** */
 
 /**
@@ -180,15 +186,11 @@ void mips_context_dispatch(mips_context_t *context)
  */
 void mips_idle(void)
 {
-	unsigned int tmp, cnt, cmp, ctl;
-
-	/* Leave kernel mode? */
-	__asm__ __volatile (
-		"mfc0 	%0, $12\n"
-		"andi	%0, 0xfffd\n"
-		"mtc0	%0, $12\n"
-		: "=r" (tmp)
-		);
+	unsigned int cmp, cnt, ctl, sp;
+	
+	__asm__ __volatile ("move %0, $29\n" : "=r" (sp));
+	if (sp <= (unsigned int)&mips_stack[MIPS_STACKSIZE-ENV_STACKSIZE_IDLE])
+		mips_panic("Stack overrun in mips_idle.\n");
 
 	tt_current->cookie = (void *)&mips_stack[MIPS_STACKSIZE-ENV_STACKSIZE_IDLE];
 	*tt_current->cookie = MIPS_CONTEXT_COOKIE;
@@ -201,17 +203,6 @@ void mips_idle(void)
 		cmp = TMR_CMP;
 		ctl = TMR_CTL;
 	}
-	/*
-	__asm__ __volatile (
-		".Lmips_idle%=:\n"
-		"lw	%0, 0(%3)\n"
-		"lw	%1, 0(%4)\n"
-		"lw	%2, 0(%5)\n"
-		"j .Lmips_idle%=\n"
-		: "=r" (cnt), "=r" (cmp), "=r" (ctl)
-		: "r" (TMR_CNT), "r" (TMR_CMP), "r" (TMR_CTL)
-		);
-	*/
 }
 
 /* ************************************************************************** */
@@ -221,6 +212,8 @@ void mips_idle(void)
  */
 void mips_timer_interrupt(void)
 {
+	if (!(TMR_CTL & TMR_CTL_CFG))
+		return;
 	TMR_CTL &= ~(TMR_CTL_CFG|TMR_CTL_CIE);
 	tt_expired(TMR_CMP);
 	tt_schedule();

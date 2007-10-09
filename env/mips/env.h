@@ -79,7 +79,7 @@ void mips_timer_start(void);
 /**
  * \brief MIPS number of threads.
  */
-#define ENV_NUM_THREADS	5
+#define ENV_NUM_THREADS	2
 
 /* ************************************************************************** */
 
@@ -141,6 +141,25 @@ int main(void)\
 	tt_run();\
 	return 0;\
 } char dummy /* Force semi-colon. */
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS default interrupt vector.
+ */
+
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS interrupt install macro.
+ */
+#define ENV_INTERRUPT(vector, handler) \
+do\
+{\
+	extern void (*mips_interrupt_handler)(void);\
+	mips_interrupt_handler = (handler);\
+} while (0)
 
 /* ************************************************************************** */
 
@@ -214,6 +233,32 @@ int main(void)\
  */
 #define ENV_SEC(val) \
 	((env_time_t)val*ENV_TIMER_HZ())
+
+/* ************************************************************************** */
+
+/**
+ * \brief MIPS interrupt enum.
+ */
+enum mips_interrupt_id
+{
+	/** \brief MIPS interrupt INT0. */
+	MIPS_INT0 = 0x00,
+
+	/** \brief MIPS interrupt INT1. */
+	MIPS_INT1 = 0x01,
+
+	/** \brief MIPS interrupt INT2. */
+	MIPS_INT2 = 0x02,
+
+	/** \brief MIPS interrupt INT3. */
+	MIPS_INT3 = 0x03,
+
+	/** \brief MIPS interrupt INT4. */
+	MIPS_INT4 = 0x04,
+
+	/** \brief MIPS interrupt INT4. */
+	MIPS_INT5 = 0x05
+};
 
 /* ************************************************************************** */
 
