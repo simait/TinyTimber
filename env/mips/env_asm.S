@@ -33,7 +33,7 @@
 
 .extern mips_panic
 .extern mips_stack_start
-.extern mips_timer_interrupt
+.extern mips_interupt_table
 .extern TMR_CTL
 
 .equ MIPS_CONTEXT_COOKIE,0x55aa55aa
@@ -92,55 +92,37 @@ mips_interrupt:
 	sw		$25, 64($sp)
 	sw		$31, 68($sp)
 
-	# NOTE:
-	#	There might be other interrupts at some point in the
-	#	future...
 
-	mfc0	$26, $12
-	nop
-	andi	$26, $26, 0xfc00
-	srl		$26, $26, 0x0a
+.Linterrupt_handle:
 
-	# Check the timer interrupt first.
-	la		$27, TMR_CTL
-	lw		$27, 0($27)
+	# Lower id means higher priority.
+	la		$26, mips_interrupt_table
+
+	mfc0	$27, $13
 	nop
-	andi	$27, $27, 0x10
-	beq		$27, $0, .Linterrupt_other
+	srl		$27, $27, 10
+	andi	$27, $27, 0x3f
+
+	beq		$27, $0, .Linterrupt_done
 	nop
 
-	la		$27, mips_timer_interrupt
-	jalr	$27
-	nop
+	li		$8, 1
+	subu	$26, $26, 4
 
-	b		.Linterrupt_done
-	nop
+.Linterrupt_find:
 
-.Linterrupt_other:
-
-	andi	$26, $26, 0x3e
-	beq		$26, $0, .Linterrupt_panic
+	andi	$9, $8, $27
+	sll		$8, $8, 1
+	beq		$0, $10, .Linterrupt_find
+	addu	$26, $26, 4
+	
+	jalr	$26
 	nop
-	la		$27, mips_interrupt_handler
-	lw		$27, 0($27)
-	nop
-	beq		$27, $0, .Linterrupt_invalid_handler
-	nop
-	jalr	$27
-	nop
-	b		.Linterrupt_done
-	nop
+	b		.Linterrupt_handle
 
 .Linterrupt_invalid_handler:
 
 	la		$4, interrupt_handler_panic
-	la		$5, mips_panic
-	jr		$5
-	nop
-
-.Linterrupt_panic:
-
-	la		$4, interrupt_panic
 	la		$5, mips_panic
 	jr		$5
 	nop

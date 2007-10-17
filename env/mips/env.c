@@ -107,7 +107,7 @@ extern volatile unsigned int IO_OUT;
  * The table is usually populated manually by the user program.
  */
 void mips_timer_interrupt(void);
-void (*mips_interrupt_handler)(void) = NULL;
+void (*mips_interrupt_table)(void) = {mips_timer_interrupt};
 
 /** \endcond */
 

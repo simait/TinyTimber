@@ -36,8 +36,6 @@
 #ifndef ENV_MIPS_ENV_H_
 #define ENV_MIPS_ENV_H_
 
-#include <mips/xcpt.h>
-
 void mips_init(void);
 void mips_idle(void);
 void mips_context_init(mips_context_t *, size_t, tt_thread_function_t);
@@ -182,13 +180,39 @@ int main(void)\
 /* ************************************************************************** */
 
 /**
+ * \brief MIPS interrupt id enum.
+ */
+enum mips_interrupt_id
+{
+	/** \brief MIPS interrupt INT0. */
+	MIPS_INT0 = 0x00,
+
+	/** \brief MIPS interrupt INT1. */
+	MIPS_INT1 = 0x01,
+
+	/** \brief MIPS interrupt INT2. */
+	MIPS_INT2 = 0x02,
+
+	/** \brief MIPS interrupt INT3. */
+	MIPS_INT3 = 0x03,
+
+	/** \brief MIPS interrupt INT4. */
+	MIPS_INT4 = 0x04,
+
+	/** \brief MIPS interrupt INT4. */
+	MIPS_INT5 = 0x05
+};
+
+/* ************************************************************************** */
+
+/**
  * \brief MIPS interrupt install macro.
  */
 #define ENV_INTERRUPT(vector, handler) \
 do\
 {\
-	extern void (*mips_interrupt_handler)(void);\
-	mips_interrupt_handler = (handler);\
+	extern void (*mips_interrupt_table)(void)[];\
+	mips_interrupt_table[vector] = handler;\
 } while (0)
 
 /* ************************************************************************** */
@@ -263,32 +287,6 @@ do\
  */
 #define ENV_SEC(val) \
 	((env_time_t)val*ENV_TIMER_HZ())
-
-/* ************************************************************************** */
-
-/**
- * \brief MIPS interrupt enum.
- */
-enum mips_interrupt_id
-{
-	/** \brief MIPS interrupt INT0. */
-	MIPS_INT0 = 0x00,
-
-	/** \brief MIPS interrupt INT1. */
-	MIPS_INT1 = 0x01,
-
-	/** \brief MIPS interrupt INT2. */
-	MIPS_INT2 = 0x02,
-
-	/** \brief MIPS interrupt INT3. */
-	MIPS_INT3 = 0x03,
-
-	/** \brief MIPS interrupt INT4. */
-	MIPS_INT4 = 0x04,
-
-	/** \brief MIPS interrupt INT4. */
-	MIPS_INT5 = 0x05
-};
 
 /* ************************************************************************** */
 
