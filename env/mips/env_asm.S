@@ -93,7 +93,7 @@ mips_interrupt:
 	sw		$31, 68($sp)
 
 
-.Linterrupt_handle:
+.Linterrupt_next:
 
 	# Lower id means higher priority.
 	la		$26, mips_interrupt_table
@@ -103,22 +103,27 @@ mips_interrupt:
 	srl		$27, $27, 10
 	andi	$27, $27, 0x3f
 
-	beq		$27, $0, .Linterrupt_done
+	beq		$0, $27, .Linterrupt_done
 	nop
 
-	li		$8, 1
 	subu	$26, $26, 4
 
 .Linterrupt_find:
 
-	andi	$9, $8, $27
-	sll		$8, $8, 1
-	beq		$0, $10, .Linterrupt_find
+	andi	$8, $27, 1
+	srl		$27, $27, 1
+	beq		$0, $8, .Linterrupt_find
 	addu	$26, $26, 4
-	
-	jalr	$26
+
+	lw		$8, 0($26)
 	nop
-	b		.Linterrupt_handle
+	beq		$0, $8, .Linterrupt_invalid_handler
+	nop
+	
+	jalr	$8
+	nop
+	b		.Linterrupt_next
+	nop
 
 .Linterrupt_invalid_handler:
 
