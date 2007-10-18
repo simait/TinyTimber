@@ -29,10 +29,12 @@ SECTIONS
   . = 0x80002000;
   .kdata : { *(.kdata) }
 
+  /* IO Memory mapped registers. */
   IO_CTL  = 0xffff0000;
   IO_IN   = 0xffff0004;
   IO_OUT  = 0xffff0008;
 
+  /* Timer Memory mapped registers. */
   TMR_CTL = 0xffff0010;
   TMR_CNT = 0xffff0014;
   TMR_CMP = 0xffff0018;
