@@ -246,7 +246,7 @@ extern char tt_args_none;
  * Performs a synchronus call.
  */
 #define TT_SYNC(to, meth, arg) \
-	tt_request((tt_object_t *)to, meth, arg)
+	tt_request((tt_object_t *)to, (tt_method_t)meth, arg)
 
 /* ************************************************************************** */
 
