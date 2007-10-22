@@ -63,7 +63,8 @@ unsigned char *mips_stack_end= mips_stack;
  * bit 2: overflow interrupt flag.
  * bit 3: compare1 interrupt enable flag.
  * bit 4: compare1 interrupt flag.
- * bit 5-31: reserved for future use.
+ * bit 5-7: timer mode bits (000 and 001 valid).
+ * bit 8-31: reserved for future use.
  */
 enum
 {
@@ -71,7 +72,8 @@ enum
 	TMR_CTL_OIE    = (1<<1),
 	TMR_CTL_OFG    = (1<<2),
 	TMR_CTL_CIE    = (1<<3),
-	TMR_CTL_CFG    = (1<<4)
+	TMR_CTL_CFG    = (1<<4),
+	TMR_CTL_CR     = (1<<5)
 };
 extern volatile unsigned int TMR_CTL;
 
