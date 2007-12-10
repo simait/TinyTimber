@@ -520,8 +520,7 @@ void tt_init(void)
 	memset(thread_pool, 0, sizeof(thread_pool));
 	threads.active = NULL;
 	threads.inactive = thread_pool;
-	for (i=0;i<ENV_NUM_THREADS;i++)
-	{
+	for (i=0;i<ENV_NUM_THREADS;i++) {
 		thread_pool[i].next = &thread_pool[i+1];
 		ENV_CONTEXT_INIT(
 				&thread_pool[i].context,
@@ -855,9 +854,16 @@ ENV_CODE_FAST void tt_action(
 	 *	We need to figure out in what way we want to be ablo to post messages
 	 *	in, soft_irq, no_deadline etc. are proposed message types. We should
 	 *	sit down and talk about it some day...
+	 *
+	 * TODO2:
+	 * 	Fully implement the new time semantics, with inherrited
+	 * 	deadlines/baselines.
 	 */
 	msg->baseline = base + bl;
-	msg->deadline = base + bl + dl;
+	if (ULONG_LT(msg->baseline, ENV_TIMER_GET()))
+		msg->baseline = ENV_TIMER_GET();
+
+	msg->deadline = msg->baseline + dl;
 	msg->to = to;
 	msg->method = method;
 
