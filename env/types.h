@@ -44,6 +44,8 @@
 #		include "arm7/types.h"
 #	elif defined ENV_MIPS
 #		include "mips/types.h"
+#	elif defined ENV_M16C
+#		include "m16c/types.h"
 #	elif defined ENV_SKEL
 #		include "skel/types.h"
 #	else

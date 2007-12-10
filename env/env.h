@@ -44,6 +44,8 @@
 #		include "arm7/env.h"
 #	elif defined ENV_MIPS
 #		include "mips/env.h"
+#	elif defined ENV_M16C
+#		include "m16c/env.h"
 #	elif defined ENV_SKEL
 #		include "skel/env.h"
 #	else
