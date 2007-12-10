@@ -76,6 +76,7 @@ $(error APP_SRC was defined but not APP_ELF.)
 endif
 APP_ELF := $(OUTPUT_PREFIX)$(APP_ELF)
 APP_HEX = $(patsubst %.elf, %.hex, $(APP_ELF))
+APP_MOT = $(patsubst %.elf, %.mot, $(APP_ELF))
 APP_BIN = $(patsubst %.elf, %.bin, $(APP_ELF))
 APP_OBJ = $(call object_convert, $(APP_SRC))
 APP_OBJ := $(call object_output, $(APP_OBJ))
@@ -136,11 +137,13 @@ $(APP_ELF): env tt app
 
 # elf target, easier than to type the name of the elf.
 elf: $(APP_ELF)
+mot: $(APP_MOT)
+bin: $(APP_BIN)
 endif
 
 ifdef APP_SRC
 clean:
-	rm -f $(TT_OBJ) $(ENV_OBJ) $(APP_OBJ) $(APP_ELF)
+	rm -f $(TT_OBJ) $(ENV_OBJ) $(APP_OBJ) $(APP_ELF) $(APP_HEX) $(APP_BIN) $(APP_MOT)
 else
 clean:
 	rm -f $(TT_OBJ) $(ENV_OBJ)
