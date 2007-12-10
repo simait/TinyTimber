@@ -433,11 +433,7 @@ __attribute__((naked)) int main(void)\
  * Usually used for interrupt functions and any code that must be in ARM
  * mode and run at full speed.
  */
-#if 0
 #define ENV_EXT_FORCE_RAM __attribute__((section(".forced_ram")))
-#else
-#define ENV_EXT_FORCE_RAM
-#endif
 
 /* ************************************************************************** */
 
