@@ -5,6 +5,7 @@
 #ENV_ARCH=avr5
 #ENV_ARCH=msp430
 #ENV_ARCH=arm7
+#ENV_ARCH=m16c
 
 ifndef ENV_ARCH
 $(error Required variable ENV_ARCH was not defined.)
@@ -27,6 +28,7 @@ ENV_ROOT=../../env/
 
 APP_SRC=main.c
 APP_ELF=main.elf
+APP_CFLAGS=-g
 
 ################################################################################
 # The target mcu we should compile the code for.
@@ -35,6 +37,7 @@ APP_ELF=main.elf
 #ENV_MCU=at90can128
 #ENV_MCU=msp430x1611
 #ENV_MCU=arm7tdmi
+#ENV_MCU=m16c
 
 ifndef ENV_MCU
 $(error Required variable ENV_MCU was not defined.)
@@ -71,4 +74,13 @@ debug:
 	avarice --mkII --detach --jtag usb :2000
 	avr-gdb -x $(ENV_ROOT)/$(ENV_ARCH)/gdbrc
 endif
+
+ifeq ($(ENV_ARCH), m16c)
+ifdef APP_MOT
+# m16c specific targets.
+$(APP_MOT): $(APP_ELF)
+	m32c-objcopy -O srec $(APP_ELF) $(APP_MOT)
+endif
+endif
+
 endif
