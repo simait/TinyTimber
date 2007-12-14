@@ -38,3 +38,8 @@ env/arm7:
 	  "sane" solution :/
 
 	* Fix the AIC code so that nested interrupts are supported...
+
+env/m16c:
+
+	* Fix the timer service, not working atm. but compiles and task-switching
+	  is working (complete with context cookies).
