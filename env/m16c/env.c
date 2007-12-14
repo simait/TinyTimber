@@ -64,9 +64,11 @@ void m16c_init(void) {
 	U1TB.WORD = 0x0000;
 	U1C1.BYTE = 0x01; /* Effectivly enable transmisson only. */
 
-	/* Setup the timer for the interrupt. */
-	TA0MR.BYTE = 0x80; /* Timer mode, always counts down :/ */
-	TA0        = 0xffff; /* Maximum value. */
+	/* Timer setup, just grab timer A0. */
+	TA0MR.BYTE = 0x80;
+	/* Must use mov instruction for this register. */
+	asm ("mov.w	#1, %0" :: "m" (UDF));
+	TA0        = 0;
 	TA0IC.BYTE = 0x01; /* Interrupt prio 1. */
 }
 
@@ -256,7 +258,7 @@ void m16c_debug_stack(unsigned char *begin, unsigned char *end) {
 }
 #endif
 
-void m16c_context_dispatch_DUMMY(m16c_context_t *context) {
+void m16c_context_dispatch_dummy_(m16c_context_t *context) {
 	/* 
 	 * NOTE:
 	 * 	__attribute__((naked)) does not work on M16C/M32C so be

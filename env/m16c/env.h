@@ -344,6 +344,27 @@ int main(void)\
 	return 0;\
 } char dummy /* Force semi-colon. */
 
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Interrupt macro.
+ *
+ * This is an ugly, ugly hack... But it works. Do NOT, I repeat NOT, try to
+ * make the compiler inline the interrupt code, you WILL f*ck up things
+ * by doing this... Sooner or later.
+ */
+/** \cond */
+#define _INT_VEC(value) "__vector_" #value
+#define INT_VEC(value) _INT_VEC(value)
+/** \endcond */
+#define ENV_INTERRUPT(id, function) \
+	void _##function##_dummy_(void) {\
+		asm(".global " INT_VEC(id) "\n" INT_VEC(id) ":\n");\
+		ENV_CONTEXT_SAVE();\
+		asm ("jsr.a	_" #function "\n");\
+		ENV_CONTEXT_RESTORE();\
+		asm("reit");\
+	}
 
 /* ************************************************************************** */
 
@@ -358,9 +379,9 @@ int main(void)\
  */
 static inline void m16c_protect(int protect) {
 	if (protect)
-		asm("fset I\n");
+		asm("fclr i\n");
 	else
-		asm("fclr I\n");
+		asm("fset i\n");
 }
 
 /* ************************************************************************** */
@@ -375,7 +396,7 @@ static inline void m16c_protect(int protect) {
 static inline int m16c_isprotected(void) {
 	int tmp;
 	asm("stc flg, %0\n" : "=r" (tmp));
-	return tmp & 0x0040;
+	return !(tmp & 0x40);
 }
 
 /* ************************************************************************** */
