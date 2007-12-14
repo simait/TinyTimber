@@ -44,6 +44,7 @@
  */
 typedef struct m16c_context_t {
 	unsigned char *sp;
+	unsigned short *cookie;
 } m16c_context_t;
 
 /**

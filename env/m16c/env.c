@@ -41,7 +41,13 @@
 unsigned char m16c_stack[M16C_STACKSIZE];
 static unsigned int m16c_stack_offset = M16C_STACKSIZE-ENV_STACKSIZE_IDLE;
 
+env_time_t m16c_timer_next;
+env_time_t m16c_timer_baseline;
+env_time_t m16c_timer_timestamp;
+
 /** \endcond */
+
+/* ************************************************************************** */
 
 /**
  * \brief M16C Initalization.
@@ -57,7 +63,14 @@ void m16c_init(void) {
 	U1BRG     = 0x0a; /* brg = f/(16*baud)-1 */
 	U1TB.WORD = 0x0000;
 	U1C1.BYTE = 0x01; /* Effectivly enable transmisson only. */
+
+	/* Setup the timer for the interrupt. */
+	TA0MR.BYTE = 0x80; /* Timer mode, always counts down :/ */
+	TA0        = 0xffff; /* Maximum value. */
+	TA0IC.BYTE = 0x01; /* Interrupt prio 1. */
 }
+
+/* ************************************************************************** */
 
 /**
  * \brief M16C Print Function.
@@ -74,6 +87,8 @@ void m16c_print(const char *str) {
 	while (!(U1C1.BYTE & 0x02));
 }
 
+/* ************************************************************************** */
+
 /**
  * \brief M16C Print hex.
  *
@@ -88,8 +103,8 @@ void m16c_print_hex(unsigned long val) {
 		'8', '9', 'a', 'b',
 		'c', 'd', 'e', 'f'
 	};
-	char fmt[] = "0x00000000";
-	char *tmp = &fmt[sizeof(fmt)-2];
+	char fmt[] = "0x00000000\n";
+	char *tmp = &fmt[sizeof(fmt)-3];
 
 	while (val) {
 		*tmp-- = hex[val&0x0f];
@@ -97,6 +112,8 @@ void m16c_print_hex(unsigned long val) {
 	}
 	m16c_print(fmt);
 }
+
+/* ************************************************************************** */
 
 /**
  * \brief M16C Panic function.
@@ -111,17 +128,46 @@ void m16c_panic(const char *str) {
 	for (;;);
 }
 
+/* ************************************************************************** */
+
 /**
  * \brief M16c Idle function.
  *
- * Should initialize the idle thread and place the processor in an idle state.
+ * Should initialize the idle thread and place the environment in an idle state.
  */
 void m16c_idle(void) {
-	/* Enable interrupts and hang until the heat death of the universe. */
+	/* Don't forget to setup the context cookie. */
+	tt_current->cookie = (void *)&m16c_stack[M16C_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->cookie = M16C_CONTEXT_COOKIE;
+
 	m16c_protect(0);
 	for (;;)
 		asm("wait\n");
 }
+
+/* ************************************************************************** */
+/**
+ * \brief M16C Environment timer start function.
+ *
+ * Will start the environment timer.
+ */
+void m16c_timer_start(void) {
+	TABSR.BIT.TA0S = 1;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Environment timer set function.
+ *
+ * Schedules the next interrupt.
+ *
+ * \param when When the next interrupt should occur.
+ */
+void m16c_timer_set(env_time_t when) {
+}
+
+/* ************************************************************************** */
 
 /**
  * \brief M16C Context Initilzation.
@@ -137,39 +183,55 @@ void m16c_context_init(
 		size_t stacksize,
 		tt_thread_function_t function
 		) {
-	int i;
+	unsigned int i;
+
+	/*
+	 * We must save a return address (function) and a fake FLG byte, in
+	 * addition there are 7 banked registers + one unbanked register to save,
+	 * additionally there are 16 pseudo-registers (one byte each) to save.
+	 * We also need 2 bytes for the context cookie (used to check for stack
+	 * overflow/underflow).
+	 *
+	 * Total sum is 4 + 2 + 7*2 + 16 + 2 = 38 bytes (the sb register is first
+	 * and we save the current value for it).
+	 */
+
+	if (stacksize < 38)
+		m16c_panic("m16c_context_init(): Requested stacksize too small.\n");
 
 	if (m16c_stack_offset < stacksize)
 		m16c_panic("m16c_context_init(): Out of stack space.\n");
 
-	context->sp = &m16c_stack[m16c_stack_offset];
-	/* TODO: context cookie check. */
-
-	/* Fake interrupt return. */
-	*(--context->sp) = 0x80;
-	*(--context->sp) = 0x00;
+	context->sp = (void *)&m16c_stack[m16c_stack_offset];
+	context->cookie = (void *)&m16c_stack[m16c_stack_offset-stacksize];
+	*context->cookie = M16C_CONTEXT_COOKIE;
 
 	/*
-	 * Save return address, push it in the order h:m:l.
-	 * 
+	 * Fake an interurpt return sequece, we should push in the order:
+	 *
+	 * 	High-Address
+	 * 	FLG-Byte (lower).
+	 * 	Middle-Address
+	 * 	Low-Address
+	 *
 	 * NOTE:
-	 * 	This is a fake function pointer, see GCC documentation for
-	 * 	more info.
+	 * 	GCC use indirect function pointers to make life easier for the
+	 * 	compiler (all pointer can be 16bit) so we must fake the high-address
+	 * 	byte (zero should always work?).
 	 */
-	*(--context->sp) = 0x00; /* Fake high byte. */
+	*(--context->sp) = 0x00; /* Fake address high byte. */
+	*(--context->sp) = 0x80; /* Fake FLG byte. */
 	*(--context->sp) = ((unsigned int)function >> 8) & 0xff;
 	*(--context->sp) = ((unsigned int)function) & 0xff;
 
-	/*
-	 * There are 7 banked registers + one unbanked register to save,
-	 * additionally there are 16 pseudo-registers (one byte each) to save.
-	 * Total sum is 2 + 7*2*2 + 16 = 46 bytes (the sb register is first and we
-	 * save the current value for it(.
-	 */
-	asm ("nop\nstc	sb, %0\nnop\n" : "=r" (i));
-	*(--context->sp) = i;
-	for (i=0;i<44;i++)
-		*(--context->sp) = 0x00;
+	/* SB, 2 bytes. */
+	asm ("stc	sb, %0\n" : "=r" (i));
+	*(--context->sp) = i >> 8;
+	*(--context->sp) = i & 0xff;
+
+	/* Registers, 30 bytes. */
+	for (i=0;i<30;i++)
+		*(--context->sp) = i;
 
 	m16c_stack_offset -= stacksize;
 }
@@ -181,23 +243,61 @@ void m16c_context_init(
  *
  * \param context The context to restore.
  */
-void m16c_context_dispatch(m16c_context_t *context) {
+#if 0
+void m16c_debug_stack(unsigned char *begin, unsigned char *end) {
+	m16c_print("Begin: ");
+	m16c_print_hex((unsigned long)begin);
+	while (begin != end) {
+		m16c_print("\t");
+		m16c_print_hex((unsigned long)*begin++);
+	}
+	m16c_print("End: ");
+	m16c_print_hex((unsigned long)begin);
+}
+#endif
+
+void m16c_context_dispatch_DUMMY(m16c_context_t *context) {
 	/* 
 	 * NOTE:
 	 * 	__attribute__((naked)) does not work on M16C/M32C so be
 	 * 	carefull (i.e. check the disassembly).
 	 */
-	asm ("pushc	flg\n");
-	
+	asm (
+		".global _m16c_context_dispatch\n"
+		"_m16c_context_dispatch:\n"
+		);
+
+
+	/*
+	 * Always fake the return path so that we may return from interrupts at
+	 * any time.
+	 */
+	asm (
+		"fset	b\n"
+		"stc	flg, r0\n"
+		"bclr	4, r0\n"
+		"pop.w	r1\n"
+		"pop.b	r0h\n"
+		"push.w	r0\n"
+		"push.w	r1\n"
+		"fclr	b\n"
+		);
+
 	ENV_CONTEXT_SAVE();
 
-	asm ("mov.w	%0, %1\n" :: "r" (context), "m" (tt_current));
-	/*tt_current = context;*/
+	/* context is in r1 and should not be messed up by the save macro. */
+	asm ("mov.w	r1, %0\n":: "m" (tt_current));
 	
 	ENV_CONTEXT_RESTORE();
 
+	/* 
+	 * This we are always able to return from interrupt, when we don't return
+	 * from an interrupt we have faked it (see above).
+	 */
 	asm ("reit\n");
 }
+
+/* ************************************************************************** */
 
 __attribute__((interrupt)) void m16c_interrupt_test(void) {
 	m16c_init();

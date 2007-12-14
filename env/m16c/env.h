@@ -42,6 +42,8 @@ void m16c_print(const char *);
 void m16c_print_hex(unsigned long);
 void m16c_panic(const char *);
 void m16c_idle(void);
+void m16c_timer_start(void);
+void m16c_timer_set(env_time_t);
 void m16c_context_init(m16c_context_t *, size_t, tt_thread_function_t);
 void m16c_context_dispatch(m16c_context_t *);
 
@@ -124,7 +126,7 @@ void m16c_context_dispatch(m16c_context_t *);
  *
  * The size of each worker thread.
  */
-#define ENV_STACKSIZE_IDLE 128
+#define ENV_STACKSIZE_IDLE 256
 
 /* ************************************************************************** */
 
@@ -161,21 +163,25 @@ void m16c_context_dispatch(m16c_context_t *);
 /* ************************************************************************** */
 
 /**
+ * \brief M16C Environment context cookie.
+ */
+#define M16C_CONTEXT_COOKIE 0x55aa
+
+/* ************************************************************************** */
+
+/**
  * \brief M16C Environment context save macro.
  *
  * NOTE:
- * 	Will leave the stack mode in interrupt stack.
+ * 	Will leave the stack mode in interrupt stack. Also we do NOT save the
+ * 	registers in bank 1.
  */
 #define ENV_CONTEXT_SAVE() \
 	asm (\
 		/* User stack. */\
 		"fset	u\n"\
 		"pushc	sb\n"\
-		/* Bank 0. */\
-		"fclr	b\n"\
-		"pushm	r0, r1, r2, r3, a0, a1, fb\n"\
-		/* Bank 1. */\
-		"fset	b\n"\
+		/* Assume Bank 0. */\
 		"pushm	r0, r1, r2, r3, a0, a1, fb\n"\
 		/* Save pseudo-registers (each reg is 8bit). */\
 		"push.w	mem0\n"\
@@ -186,13 +192,21 @@ void m16c_context_dispatch(m16c_context_t *);
 		"push.w	mem10\n"\
 		"push.w	mem12\n"\
 		"push.w	mem14\n"\
-		/* Save sp to tt_current. */\
+		/* Check cookie and save sp. */\
 		"mov.w	%0, a0\n"\
-		"mov.w	[a0], a0\n"\
+		"mov.w	2[a0], a1\n"\
+		"cmp.w	%1, [a1]\n"\
+		"jeq	.L%=\n"\
+		"mov.w	%2, r1\n"\
+		"jsr.a	_m16c_panic\n"\
+		".L%=:\n"\
 		"stc	sp, [a0]\n"\
 		/* Interrupt stack. */\
 		"fclr	u\n"\
-		:: "m" (tt_current)\
+		::\
+			"m" (tt_current),\
+			"i" (M16C_CONTEXT_COOKIE),\
+			"i" ("Context cookie corruption during save.\n")\
 		)
 
 /* ************************************************************************** */
@@ -202,12 +216,17 @@ void m16c_context_dispatch(m16c_context_t *);
  */
 #define ENV_CONTEXT_RESTORE() \
 	asm (\
-		/* Load sp from tt_current. */\
-		"mov.w	%0, a0\n"\
-		"mov.w	[a0], a0\n"\
-		"ldc	[a0], sp\n"\
 		/* User stack. */\
 		"fset	u\n"\
+		/* Load sp from tt_current. */\
+		"mov.w	%0, a0\n"\
+		"mov.w	2[a0], a1\n"\
+		"cmp.w	%1, [a1]\n"\
+		"jeq	.L%=\n"\
+		"mov.w	%2, r1\n"\
+		"jsr.a	_m16c_panic\n"\
+		".L%=:\n"\
+		"ldc	[a0], sp\n"\
 		/* Restore pseudo-registers (each reg is 8bit). */\
 		"pop.w	mem14\n"\
 		"pop.w	mem12\n"\
@@ -217,15 +236,15 @@ void m16c_context_dispatch(m16c_context_t *);
 		"pop.w	mem4\n"\
 		"pop.w	mem2\n"\
 		"pop.w	mem0\n"\
-		/* Restore Bank 1. */\
-		"fset	b\n"\
-		"popm	r0, r1, r2, r3, a0, r1, fb\n"\
-		/* Restore Bank 0. */\
-		"fclr	b\n"\
-		"popm	r0, r1, r2, r3, a0, r1, fb\n"\
+		/* Assume Bank 0. */\
+		"popm	r0, r1, r2, r3, a0, a1, fb\n"\
 		"popc	sb\n"\
-		:: "m" (tt_current)\
+		::\
+			"m" (tt_current),\
+			"i" (M16C_CONTEXT_COOKIE),\
+			"i" ("Context cookie corruption during restore.\n")\
 		)
+
 /* ************************************************************************** */
 
 /**
@@ -241,20 +260,22 @@ void m16c_context_dispatch(m16c_context_t *);
 /* ************************************************************************** */
 
 /**
- * \brief Environment timer start macro.
+ * \brief M16C Environment timer start macro.
  *
  * Should start the environment timer service.
  */
-#define ENV_TIMER_START()
+#define ENV_TIMER_START() \
+	m16c_timer_start()
 
 /* ************************************************************************** */
 
 /**
- * \brief Environment timer set macro.
+ * \brief M16C Environment timer set macro.
  *
  * Should set the time when tt_expired(time) should be called.
  */
-#define ENV_TIMER_SET(time)
+#define ENV_TIMER_SET(value) \
+	m16c_timer_set(value)
 
 /* ************************************************************************** */
 
@@ -304,6 +325,8 @@ void m16c_context_dispatch(m16c_context_t *);
  */
 #define ENV_SEC(n) 0
 
+/* ************************************************************************** */
+
 /**
  * \brief M16C Environment startup macro.
  *
@@ -322,6 +345,8 @@ int main(void)\
 } char dummy /* Force semi-colon. */
 
 
+/* ************************************************************************** */
+
 /**
  * \brief M16C Protect function.
  *
@@ -338,6 +363,8 @@ static inline void m16c_protect(int protect) {
 		asm("fclr I\n");
 }
 
+/* ************************************************************************** */
+
 /**
  * \brief M16C Is-Protected function.
  *
@@ -349,6 +376,17 @@ static inline int m16c_isprotected(void) {
 	int tmp;
 	asm("stc flg, %0\n" : "=r" (tmp));
 	return tmp & 0x0040;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Timer get function.
+ *
+ * \return The current time.
+ */
+static inline env_time_t m16c_timer_get(void) {
+	return 0;
 }
 
 #endif
