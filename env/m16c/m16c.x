@@ -2,74 +2,74 @@ ENTRY(_start)
 
 MEMORY {
 	ram (rw) : o = 0x0000400, l = 31k
-	flash (rx) : o = 0x00C0000, l = 256k
+	flash (rx) : o = 0x00c0000, l = 256k
 }
 
 /* Provide any vector symbols not defined. */
-PROVIDE(_vector_0 = _vector_default);
-PROVIDE(_vector_1 = _vector_default);
-PROVIDE(_vector_2 = _vector_default);
-PROVIDE(_vector_3 = _vector_default);
-PROVIDE(_vector_4 = _vector_default);
-PROVIDE(_vector_5 = _vector_default);
-PROVIDE(_vector_6 = _vector_default);
-PROVIDE(_vector_7 = _vector_default);
-PROVIDE(_vector_8 = _vector_default);
-PROVIDE(_vector_9 = _vector_default);
-PROVIDE(_vector_10 = _vector_default);
-PROVIDE(_vector_11 = _vector_default);
-PROVIDE(_vector_12 = _vector_default);
-PROVIDE(_vector_13 = _vector_default);
-PROVIDE(_vector_14 = _vector_default);
-PROVIDE(_vector_15 = _vector_default);
-PROVIDE(_vector_16 = _vector_default);
-PROVIDE(_vector_17 = _vector_default);
-PROVIDE(_vector_18 = _vector_default);
-PROVIDE(_vector_19 = _vector_default);
-PROVIDE(_vector_20 = _vector_default);
-PROVIDE(_vector_21 = _vector_default);
-PROVIDE(_vector_22 = _vector_default);
-PROVIDE(_vector_23 = _vector_default);
-PROVIDE(_vector_24 = _vector_default);
-PROVIDE(_vector_25 = _vector_default);
-PROVIDE(_vector_26 = _vector_default);
-PROVIDE(_vector_27 = _vector_default);
-PROVIDE(_vector_28 = _vector_default);
-PROVIDE(_vector_29 = _vector_default);
-PROVIDE(_vector_30 = _vector_default);
-PROVIDE(_vector_31 = _vector_default);
-PROVIDE(_vector_32 = _vector_default);
-PROVIDE(_vector_33 = _vector_default);
-PROVIDE(_vector_34 = _vector_default);
-PROVIDE(_vector_35 = _vector_default);
-PROVIDE(_vector_36 = _vector_default);
-PROVIDE(_vector_37 = _vector_default);
-PROVIDE(_vector_38 = _vector_default);
-PROVIDE(_vector_39 = _vector_default);
-PROVIDE(_vector_40 = _vector_default);
-PROVIDE(_vector_41 = _vector_default);
-PROVIDE(_vector_42 = _vector_default);
-PROVIDE(_vector_43 = _vector_default);
-PROVIDE(_vector_44 = _vector_default);
-PROVIDE(_vector_45 = _vector_default);
-PROVIDE(_vector_46 = _vector_default);
-PROVIDE(_vector_47 = _vector_default);
-PROVIDE(_vector_48 = _vector_default);
-PROVIDE(_vector_49 = _vector_default);
-PROVIDE(_vector_50 = _vector_default);
-PROVIDE(_vector_51 = _vector_default);
-PROVIDE(_vector_52 = _vector_default);
-PROVIDE(_vector_53 = _vector_default);
-PROVIDE(_vector_54 = _vector_default);
-PROVIDE(_vector_55 = _vector_default);
-PROVIDE(_vector_56 = _vector_default);
-PROVIDE(_vector_57 = _vector_default);
-PROVIDE(_vector_58 = _vector_default);
-PROVIDE(_vector_59 = _vector_default);
-PROVIDE(_vector_60 = _vector_default);
-PROVIDE(_vector_61 = _vector_default);
-PROVIDE(_vector_62 = _vector_default);
-PROVIDE(_vector_63 = _vector_default);
+PROVIDE(__vector_0 = __vector_default);
+PROVIDE(__vector_1 = __vector_default);
+PROVIDE(__vector_2 = __vector_default);
+PROVIDE(__vector_3 = __vector_default);
+PROVIDE(__vector_4 = __vector_default);
+PROVIDE(__vector_5 = __vector_default);
+PROVIDE(__vector_6 = __vector_default);
+PROVIDE(__vector_7 = __vector_default);
+PROVIDE(__vector_8 = __vector_default);
+PROVIDE(__vector_9 = __vector_default);
+PROVIDE(__vector_10 = __vector_default);
+PROVIDE(__vector_11 = __vector_default);
+PROVIDE(__vector_12 = __vector_default);
+PROVIDE(__vector_13 = __vector_default);
+PROVIDE(__vector_14 = __vector_default);
+PROVIDE(__vector_15 = __vector_default);
+PROVIDE(__vector_16 = __vector_default);
+PROVIDE(__vector_17 = __vector_default);
+PROVIDE(__vector_18 = __vector_default);
+PROVIDE(__vector_19 = __vector_default);
+PROVIDE(__vector_20 = __vector_default);
+PROVIDE(__vector_21 = __vector_default);
+PROVIDE(__vector_22 = __vector_default);
+PROVIDE(__vector_23 = __vector_default);
+PROVIDE(__vector_24 = __vector_default);
+PROVIDE(__vector_25 = __vector_default);
+PROVIDE(__vector_26 = __vector_default);
+PROVIDE(__vector_27 = __vector_default);
+PROVIDE(__vector_28 = __vector_default);
+PROVIDE(__vector_29 = __vector_default);
+PROVIDE(__vector_30 = __vector_default);
+PROVIDE(__vector_31 = __vector_default);
+PROVIDE(__vector_32 = __vector_default);
+PROVIDE(__vector_33 = __vector_default);
+PROVIDE(__vector_34 = __vector_default);
+PROVIDE(__vector_35 = __vector_default);
+PROVIDE(__vector_36 = __vector_default);
+PROVIDE(__vector_37 = __vector_default);
+PROVIDE(__vector_38 = __vector_default);
+PROVIDE(__vector_39 = __vector_default);
+PROVIDE(__vector_40 = __vector_default);
+PROVIDE(__vector_41 = __vector_default);
+PROVIDE(__vector_42 = __vector_default);
+PROVIDE(__vector_43 = __vector_default);
+PROVIDE(__vector_44 = __vector_default);
+PROVIDE(__vector_45 = __vector_default);
+PROVIDE(__vector_46 = __vector_default);
+PROVIDE(__vector_47 = __vector_default);
+PROVIDE(__vector_48 = __vector_default);
+PROVIDE(__vector_49 = __vector_default);
+PROVIDE(__vector_50 = __vector_default);
+PROVIDE(__vector_51 = __vector_default);
+PROVIDE(__vector_52 = __vector_default);
+PROVIDE(__vector_53 = __vector_default);
+PROVIDE(__vector_54 = __vector_default);
+PROVIDE(__vector_55 = __vector_default);
+PROVIDE(__vector_56 = __vector_default);
+PROVIDE(__vector_57 = __vector_default);
+PROVIDE(__vector_58 = __vector_default);
+PROVIDE(__vector_59 = __vector_default);
+PROVIDE(__vector_60 = __vector_default);
+PROVIDE(__vector_61 = __vector_default);
+PROVIDE(__vector_62 = __vector_default);
+PROVIDE(__vector_63 = __vector_default);
 
 SECTIONS {
 	/*
@@ -78,7 +78,7 @@ SECTIONS {
 	 * is great.
 	 */
 	__ram_start = 0x500;
-	__ram_end = 0x400 + 31k;
+	__ram_end = 0x400 + 31k - 1;
 
 	.data __ram_start :	{
 		*(.data);
@@ -98,7 +98,7 @@ SECTIONS {
 	__bss_start = ADDR(.bss);
 	__bss_size = SIZEOF(.bss);
 
-	.text : {
+	.text 0xe0000 : {
 		*(.text);
 		*(.vectors_variable);
 	} > flash

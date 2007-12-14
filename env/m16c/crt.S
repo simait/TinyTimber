@@ -35,7 +35,7 @@
 
 .text
 	.global _start
-	.global _vector_default
+	.global __vector_default
 
 	.extern _main
 
@@ -44,6 +44,9 @@ _start:
 	mov.b	#0x02, PRCR
 	mov.b	#0x00, PM0
 	mov.b	#0x00, PRCR
+
+	/* Setup the FLG register to some sane defaults. */
+	ldc		#0, flg
 
 	/* Setup the interrupt stack. */
 	mov.w	#__ram_end, r0
@@ -72,14 +75,14 @@ _start:
 	sstr.b
 
 	/* Enter main(). */
-	jmp.a	_main
+	jsr.a	_main
 
 	/* In case we return, should realy generate a reset :/ */
 	jmp.b	0
 
 /* We should probably not get here. */
-_vector_default:
-	jmp.a	_vector_default
+__vector_default:
+	jmp.a	__vector_default
 
 /* Fixed hardware vector table. */
 .section .vectors_fixed, "a",@progbits
@@ -107,67 +110,67 @@ _vectors_fixed:
 
 _vectors_variable:
 
-.long	_vector_0
-.long	_vector_1
-.long	_vector_2
-.long	_vector_3
-.long	_vector_4
-.long	_vector_5
-.long	_vector_6
-.long	_vector_7
-.long	_vector_8
-.long	_vector_9
-.long	_vector_10
-.long	_vector_11
-.long	_vector_12
-.long	_vector_13
-.long	_vector_14
-.long	_vector_15
-.long	_vector_16
-.long	_vector_17
-.long	_vector_18
-.long	_vector_19
-.long	_vector_20
-.long	_vector_21
-.long	_vector_22
-.long	_vector_23
-.long	_vector_24
-.long	_vector_25
-.long	_vector_26
-.long	_vector_27
-.long	_vector_28
-.long	_vector_29
-.long	_vector_30
-.long	_vector_31
-.long	_vector_32
-.long	_vector_33
-.long	_vector_34
-.long	_vector_35
-.long	_vector_36
-.long	_vector_37
-.long	_vector_38
-.long	_vector_39
-.long	_vector_40
-.long	_vector_41
-.long	_vector_42
-.long	_vector_43
-.long	_vector_44
-.long	_vector_45
-.long	_vector_46
-.long	_vector_47
-.long	_vector_48
-.long	_vector_49
-.long	_vector_50
-.long	_vector_51
-.long	_vector_52
-.long	_vector_53
-.long	_vector_54
-.long	_vector_55
-.long	_vector_56
-.long	_vector_57
-.long	_vector_58
-.long	_vector_59
-.long	_vector_60
-.long	_vector_61
-.long	_vector_62
-.long	_vector_63
+.long	__vector_0
+.long	__vector_1
+.long	__vector_2
+.long	__vector_3
+.long	__vector_4
+.long	__vector_5
+.long	__vector_6
+.long	__vector_7
+.long	__vector_8
+.long	__vector_9
+.long	__vector_10
+.long	__vector_11
+.long	__vector_12
+.long	__vector_13
+.long	__vector_14
+.long	__vector_15
+.long	__vector_16
+.long	__vector_17
+.long	__vector_18
+.long	__vector_19
+.long	__vector_20
+.long	__vector_21
+.long	__vector_22
+.long	__vector_23
+.long	__vector_24
+.long	__vector_25
+.long	__vector_26
+.long	__vector_27
+.long	__vector_28
+.long	__vector_29
+.long	__vector_30
+.long	__vector_31
+.long	__vector_32
+.long	__vector_33
+.long	__vector_34
+.long	__vector_35
+.long	__vector_36
+.long	__vector_37
+.long	__vector_38
+.long	__vector_39
+.long	__vector_40
+.long	__vector_41
+.long	__vector_42
+.long	__vector_43
+.long	__vector_44
+.long	__vector_45
+.long	__vector_46
+.long	__vector_47
+.long	__vector_48
+.long	__vector_49
+.long	__vector_50
+.long	__vector_51
+.long	__vector_52
+.long	__vector_53
+.long	__vector_54
+.long	__vector_55
+.long	__vector_56
+.long	__vector_57
+.long	__vector_58
+.long	__vector_59
+.long	__vector_60
+.long	__vector_61
+.long	__vector_62
+.long	__vector_63
