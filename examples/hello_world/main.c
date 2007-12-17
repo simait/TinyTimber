@@ -52,7 +52,7 @@ static env_result_t hello_cb(tt_object_t *obj, void *arg)
 void init(void)
 {
 	memset(&hello, 0, sizeof(hello));
-	TT_AFTER_BEFORE(ENV_USEC(500), ENV_SEC(1),&hello, hello_cb, TT_ARGS_NONE);
+	TT_AFTER_BEFORE(ENV_MSEC(100), ENV_SEC(1),&hello, hello_cb, TT_ARGS_NONE);
 }
 
 ENV_STARTUP(init);

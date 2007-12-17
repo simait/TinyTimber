@@ -74,13 +74,16 @@ debug:
 	avarice --mkII --detach --jtag usb :2000
 	avr-gdb -x $(ENV_ROOT)/$(ENV_ARCH)/gdbrc
 endif
+endif
 
 ifeq ($(ENV_ARCH), m16c)
 ifdef APP_MOT
-# m16c specific targets.
+# Create the mot file.
 $(APP_MOT): $(APP_ELF)
-	m32c-objcopy -O srec $(APP_ELF) $(APP_MOT)
-endif
-endif
+	m32c-elf-objcopy -O srec $(APP_ELF) $(APP_MOT)
 
+# Flash the mot file to the device.
+flash: $(APP_MOT)
+	~/src/sf/sf.py --device /dev/ttyUSB0 --device-id 0:0:0:0:0:0:0 --baud-rate 57600 --input-file $(APP_MOT) --id-validate --flash-erase-all --flash-write
+endif
 endif
