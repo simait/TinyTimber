@@ -1,3 +1,6 @@
+#ifndef IOM16C63_H_
+#define IOM16C63_H_
+
 /****************************************************************
 KPIT Cummins Infosystems Ltd, Pune, India.  27-June-2005.
 
@@ -2061,3 +2064,5 @@ union st_dm0ic {					/*    interrupt control registers*/
 
 /* Port control register */
 #define PCR  (*(volatile union st_pcr *)(0x03ff))
+
+#endif

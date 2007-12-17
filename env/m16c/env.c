@@ -34,16 +34,65 @@
 #include <tT.h>
 #include <kernel.h>
 
-#include "iom16c62.h"
-
 /** \cond */
 
 unsigned char m16c_stack[M16C_STACKSIZE];
 static unsigned int m16c_stack_offset = M16C_STACKSIZE-ENV_STACKSIZE_IDLE;
 
-env_time_t m16c_timer_next;
-env_time_t m16c_timer_baseline;
-env_time_t m16c_timer_timestamp;
+env_time_t m16c_timer_next = 0;
+env_time_t m16c_timer_base = 0;
+env_time_t m16c_timer_timestamp = 0;
+static char m16c_timer_active = 0;
+
+/*
+ * Epoch schedule funtion, handles scheduling of interrupts in the middle
+ * of each epoch (between 2 timer underflows).
+ */
+static inline void m16c_timer_epoch_schedule(void) {
+	signed long diff;
+
+	/* Only schedule when there is an active baseline. */
+	if (!m16c_timer_active)
+		return;
+
+	diff = m16c_timer_next - m16c_timer_base;
+	if (diff < M16C_TIMER_COUNT) {
+		if (diff <= (M16C_TIMER_COUNT - TA0)) {
+			/* Must use mov instruction for this register. */
+			asm ("mov.w	#1, %0\n" :: "m" (TA1));
+		} else {
+			asm (
+				"mov.w	%0, %1\n"
+				::
+				"r" ((unsigned short)diff),
+				"m" (TA1)
+				);
+		}
+		ONSF.BIT.TA1OS = 1;
+	}
+}
+
+/*
+ * The timer 0 interrupt, only handles the updating of the abolute time counted
+ * by m16c_timer_base.
+ */
+ENV_EXT_INTERRUPT_RAW(M16C_TMRA0) {
+	m16c_timer_base += M16C_TIMER_COUNT;
+	m16c_timer_epoch_schedule();
+}
+
+
+/*
+ * Timer 1 interrupt, will occur when a baseline has expired and will notify
+ * the kernel of this.
+ */
+void m16c_timera1_interrupt(void) {
+	m16c_timer_active = 0;
+
+	tt_expired(m16c_timer_next);
+	tt_schedule();
+}
+ENV_INTERRUPT(M16C_TMRA1, m16c_timera1_interrupt); /* Install handler. */
 
 /** \endcond */
 
@@ -64,12 +113,23 @@ void m16c_init(void) {
 	U1TB.WORD = 0x0000;
 	U1C1.BYTE = 0x01; /* Effectivly enable transmisson only. */
 
-	/* Timer setup, just grab timer A0. */
+	/*
+	 * Ok, setting up TimerA0 and TimerA1. TimerA0 will stand for the absolute
+	 * time and TimerA1 will be used to generate pseudo accurate interrupts
+	 * during between the TimerA0 underflows. Not perfect but since this is
+	 * a crappy platform this is probably as good as it gets :/
+	 */
+
+	/* TimerA0: continous down count timer. */
 	TA0MR.BYTE = 0x80;
 	/* Must use mov instruction for this register. */
-	asm ("mov.w	#1, %0" :: "m" (UDF));
-	TA0        = 0;
+	asm ("mov.w	#0xffff, %0\n" :: "m" (TA0));
 	TA0IC.BYTE = 0x01; /* Interrupt prio 1. */
+
+	/* TimerA1: one-shot down count timer. */
+	TA1MR.BYTE = 0x82;
+	TA1IC.BYTE = 0x01; /* Interrupt prio 1. */
+	TABSR.BIT.TA1S = 1; /* Start, but do not trigger. */
 }
 
 /* ************************************************************************** */
@@ -167,6 +227,10 @@ void m16c_timer_start(void) {
  * \param when When the next interrupt should occur.
  */
 void m16c_timer_set(env_time_t when) {
+	m16c_timer_next = when;
+	m16c_timer_active = 1;
+
+	m16c_timer_epoch_schedule();
 }
 
 /* ************************************************************************** */
@@ -194,12 +258,9 @@ void m16c_context_init(
 	 * We also need 2 bytes for the context cookie (used to check for stack
 	 * overflow/underflow).
 	 *
-	 * Total sum is 4 + 2 + 7*2 + 16 + 2 = 38 bytes (the sb register is first
-	 * and we save the current value for it).
+	 * Total sum is 4 + 2 + 7*2 + 16 = 36 bytes (the sb register is first
+	 * register that is saved and we save the current value for it).
 	 */
-
-	if (stacksize < 38)
-		m16c_panic("m16c_context_init(): Requested stacksize too small.\n");
 
 	if (m16c_stack_offset < stacksize)
 		m16c_panic("m16c_context_init(): Out of stack space.\n");
@@ -256,6 +317,25 @@ void m16c_debug_stack(unsigned char *begin, unsigned char *end) {
 	m16c_print("End: ");
 	m16c_print_hex((unsigned long)begin);
 }
+void m16c_print_return(unsigned char *addr) {
+	unsigned long data;
+	unsigned char *tmp = addr;
+	data = *tmp++;
+	data = (((unsigned long)*tmp) << 8) | data;
+	tmp += 2;
+	data = (((unsigned long)*tmp) << 16) | data;
+	m16c_print("Returning to address: ");
+	m16c_print_hex(data);
+	tmp = addr;
+	data = *tmp++;
+	data |= ((unsigned long)*tmp++) << 8;
+	data |= ((unsigned long)*tmp++) << 16;
+	data |= ((unsigned long)*tmp++) << 24;
+	m16c_print("reit data: ");
+	m16c_print_hex(data);
+	m16c_print("from: ");
+	m16c_print_hex(addr);
+}
 #endif
 
 void m16c_context_dispatch_dummy_(m16c_context_t *context) {
@@ -289,7 +369,7 @@ void m16c_context_dispatch_dummy_(m16c_context_t *context) {
 
 	/* context is in r1 and should not be messed up by the save macro. */
 	asm ("mov.w	r1, %0\n":: "m" (tt_current));
-	
+
 	ENV_CONTEXT_RESTORE();
 
 	/* 
@@ -297,10 +377,4 @@ void m16c_context_dispatch_dummy_(m16c_context_t *context) {
 	 * from an interrupt we have faked it (see above).
 	 */
 	asm ("reit\n");
-}
-
-/* ************************************************************************** */
-
-__attribute__((interrupt)) void m16c_interrupt_test(void) {
-	m16c_init();
 }

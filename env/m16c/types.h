@@ -61,7 +61,7 @@ typedef m16c_context_t env_context_t;
  * Should evaluate to the type that is used to represent time within the
  * environment.
  */
-typedef int env_time_t;
+typedef unsigned long env_time_t;
 
 /**
  * \brief M16C Environment result typdef.

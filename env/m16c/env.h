@@ -36,6 +36,9 @@
 
 #include <types.h>
 #include <kernel.h>
+#include <m16c/interrupts.h>
+
+#include <m16c/iom16c62.h>
 
 void m16c_init(void);
 void m16c_print(const char *);
@@ -178,10 +181,13 @@ void m16c_context_dispatch(m16c_context_t *);
  */
 #define ENV_CONTEXT_SAVE() \
 	asm (\
-		/* User stack. */\
+		/* Start saving registers etc. */\
+		"fset	b\n"\
+		"popm	r0, r1\n"\
 		"fset	u\n"\
+		"pushm	r0, r1\n"\
+		"fclr	b\n"\
 		"pushc	sb\n"\
-		/* Assume Bank 0. */\
 		"pushm	r0, r1, r2, r3, a0, a1, fb\n"\
 		/* Save pseudo-registers (each reg is 8bit). */\
 		"push.w	mem0\n"\
@@ -280,11 +286,35 @@ void m16c_context_dispatch(m16c_context_t *);
 /* ************************************************************************** */
 
 /**
+ * \brief M16C Environment main clock frequency.
+ */
+#define M16C_MAIN_CLOCK	16000000UL
+
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Environment timer count.
+ *
+ * The number of time units in one epoch.
+ */
+#define M16C_TIMER_COUNT 0x10000
+
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Environment timer frequency.
+ */
+#define M16C_TIMER_HZ (M16C_MAIN_CLOCK/32/2)
+
+/* ************************************************************************** */
+
+/**
  * \brief Environment timer get macro.
  *
  * Should evaluate to the current time.
  */
-#define ENV_TIMER_GET() 0
+#define ENV_TIMER_GET() \
+	m16c_timer_get()
 
 /* ************************************************************************** */
 
@@ -293,7 +323,8 @@ void m16c_context_dispatch(m16c_context_t *);
  *
  * Should evaluate to the time when the most recent interrupt was triggered.
  */
-#define ENV_TIMESTAMP() 0
+#define ENV_TIMESTAMP() \
+	m16c_timestamp()
 
 /* ************************************************************************** */
 
@@ -303,7 +334,8 @@ void m16c_context_dispatch(m16c_context_t *);
  * The given number of usecs should be converted to time-base of
  * the environment.
  */
-#define ENV_USEC(n) 0
+#define ENV_USEC(n) \
+	(((env_time_t)n*M16C_TIMER_HZ)/1000000)
 
 /* ************************************************************************** */
 
@@ -313,7 +345,8 @@ void m16c_context_dispatch(m16c_context_t *);
  * The given number of msecs should be converted to time-base of
  * the environment.
  */
-#define ENV_MSEC(n) 0
+#define ENV_MSEC(n) \
+	(((env_time_t)n*M16C_TIMER_HZ)/1000)
 
 /* ************************************************************************** */
 
@@ -323,7 +356,8 @@ void m16c_context_dispatch(m16c_context_t *);
  * The given number of secs should be converted to time-base of
  * the environment.
  */
-#define ENV_SEC(n) 0
+#define ENV_SEC(n) \
+	((env_time_t)n*M16C_TIMER_HZ)
 
 /* ************************************************************************** */
 
@@ -369,6 +403,23 @@ int main(void)\
 /* ************************************************************************** */
 
 /**
+ * \brief M16C Raw interrupt macro (extension).
+ *
+ * This again as with the regular interrupt macro this is a very, _very_ ugly
+ * hack to get things working when using the sort of crippled GCC compiler.
+ *
+ * Also, we do not install a callback function but rather decalre a special
+ * name for the function so that the linker script can find it and place it
+ * in the correct spot. See the TimerA0 interrupt in the environment sources
+ * for an example usage.
+ */
+#define INT_VEC_RAW(value) _vector_##value
+#define ENV_EXT_INTERRUPT_RAW(id) \
+	__attribute__((interrupt)) void INT_VEC_RAW(id)(void)
+
+/* ************************************************************************** */
+
+/**
  * \brief M16C Protect function.
  *
  * Disables all interrupts if the parameter is non-zero, otherwise enable
@@ -407,7 +458,20 @@ static inline int m16c_isprotected(void) {
  * \return The current time.
  */
 static inline env_time_t m16c_timer_get(void) {
-	return 0;
+	extern env_time_t m16c_timer_base;
+	return m16c_timer_base + (0xffff - TA0);
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief M16C Envrionment timer timestamp function.
+ *
+ * \return The timestamp of the previous interrupt.
+ */
+static inline env_time_t m16c_timestamp(void) {
+	extern env_time_t m16c_timer_timestamp;
+	return m16c_timer_timestamp;
 }
 
 #endif
