@@ -123,6 +123,15 @@ void posix_ext_interrupt_generate(int);
 /* ************************************************************************** */
 
 /**
+ * \brief POSIX Environment context behaviour macro.
+ *
+ * Tells the TT kernel that the context is not save upon interrupt entry.
+ */
+#define ENV_CONTEXT_NOT_SAVED 1
+
+/* ************************************************************************** */
+
+/**
  * \brief Environment thread initialization macro.
  *
  * Will initialize a thread context.
@@ -163,7 +172,7 @@ void posix_ext_interrupt_generate(int);
 /**
  * \brief The number of thears of this environment.
  */
-#define ENV_NUM_THREADS 10
+#define ENV_NUM_THREADS 2
 
 /* ************************************************************************** */
 

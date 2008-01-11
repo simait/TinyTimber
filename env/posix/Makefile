@@ -14,7 +14,7 @@ endif
 CC				= gcc
 
 # Don't care about the MCU flags, just set it to -Wfatal-errors, for fun.
-MCU				:= -Wfatal-errors
+ENV_MCU				:= -Wfatal-errors
 
 ################################################################################
 # Setup all the ENV_* variables, ENV_CFLAGS we allow the user to
@@ -23,10 +23,10 @@ MCU				:= -Wfatal-errors
 
 ENV_DEF 		= -DENV_POSIX=1 -DPOSIX_TICK=100000
 ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/env.c\
-				  $(ENV_ROOT)/$(ENV_ARCH)/ack.c\
+				  $(ENV_ROOT)/$(ENV_ARCH)/ack.c
 
 ENV_INC			= -I$(ENV_ROOT)
 ifndef ENV_CFLAGS
-ENV_CFLAGS		= -O2 -Wall
+ENV_CFLAGS		= -O2 -Wall -g
 endif
 ENV_LDFLAGS		= -lpthread

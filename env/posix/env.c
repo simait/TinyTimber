@@ -309,8 +309,7 @@ static void *posix_thread_wrapper(void *data)
 	ack_set(posix_thread_ready_ack);
 
 	/* Wait until we're released. */
-	while (!context->run)
-	{
+	while (!context->run) {
 		if (pthread_cond_wait(&context->signal, &context->lock))
 			posix_panic("Unable to wait for signal state change.\n");
 	}
@@ -320,8 +319,6 @@ static void *posix_thread_wrapper(void *data)
 		posix_panic("Unable to release context lock.\n");
 
 	posix_protect(1);
-
-	fprintf(stderr, "And running!\n");
 
 	/* Call the function. */
 	context->function();
@@ -404,8 +401,7 @@ void *posix_clock_source_interrupt(void *data)
 
 	/* Wait until we should start. */
 	ack_wait(posix_clock_start_ack, 1);
-	for (;;)
-	{
+	for (;;) {
 		/* Set the timeout. */
 		timeout.tv_sec = 0;
 		timeout.tv_usec = POSIX_TICK;
@@ -435,8 +431,7 @@ static void posix_interrupt_noop(int id)
 static void posix_interrupt_clock(int id)
 {
 	/* Update the current time. */
-	if (++posix_clock_tick == posix_clock_next)
-	{
+	if (++posix_clock_tick == posix_clock_next) {
 		tt_expired(posix_clock_tick);
 		tt_schedule();
 	}
@@ -491,7 +486,7 @@ void posix_init(void)
 	/* Block all signals for the root thread, except the SIGINT. */
 	sigfillset(&block);
 	sigdelset(&block, SIGINT);
-	//sigdelset(&block, SIGUSR1);
+	sigdelset(&block, SIGUSR1);
 	if (pthread_sigmask(SIG_BLOCK, &block, NULL))
 		posix_panic("Unable to set block for root thread.\n");
 
@@ -587,9 +582,6 @@ void posix_context_init(posix_context_t *context, void (*function)(void))
 	/* Initialize the signal conditioan. */
 	if (pthread_cond_init(&context->signal, NULL))
 		posix_panic("Unable to initialize signal.\n");
-
-	/* Thread is not running. */
-	context->run= 0;
 
 	/* Set the context function. */
 	context->function = function;
@@ -717,7 +709,19 @@ void posix_idle(void)
 	 * We must initialize the idle context since the kernel does not
 	 * do this for us.
 	 */
+	/*
+	tt_current->run = 1;
 	posix_context_init(tt_current, _posix_idle);
+	*/
+	
+	/* Do manually what posix_context_init and posix_thread_wrapper does. */
+	if (pthread_mutex_init(&tt_current->lock, NULL))
+		posix_panic("Unable to initialize lock.\n");
+	if (pthread_cond_init(&tt_current->signal, NULL))
+		posix_panic("Unable to initialize signal.\n");
+	tt_current->thread = pthread_self();
+	if (pthread_setspecific(posix_context, tt_current))
+		posix_panic("Unable to set thread specific context.\n");
 
 	/* Leave protected mode. */
 	posix_protect(0);
@@ -801,8 +805,7 @@ void posix_context_dispatch(posix_context_t *thread)
 		posix_panic("Unable to release context lock.\n");
 
 	/* Until we should run again. */
-	while (!context->run)
-	{
+	while (!context->run) {
 		/* Wait until we are ready to run again. */
 		if (pthread_cond_wait(&context->signal, &posix_kernel_lock))
 			posix_panic("Unable to wait until we are released again.\n");
@@ -896,8 +899,6 @@ env_time_t posix_sec(env_time_t val)
 void posix_ext_interrupt_handler(int id, posix_ext_interrupt_handler_t handler)
 {
 	assert(id < POSIX_NUM_INTERRUPTS);
-
-	/* Install the handler. */
 	posix_interrupt_vector[id] = handler;
 }
 
@@ -908,20 +909,16 @@ void posix_ext_interrupt_handler(int id, posix_ext_interrupt_handler_t handler)
  */
 void posix_ext_interrupt_generate(int id)
 {
-	/* Aquire the interrupt lock. */
 	if (pthread_mutex_lock(&posix_interrupt_lock))
 		posix_panic("Unable to aquire interrupt lock.\n");
 
-	/* NOTE: This is where we wish to set the interupt nr. */
 	posix_interrupt = id;
 
-	/* Grab the kernel lock. */
 	if (pthread_mutex_lock(&posix_kernel_lock))
 		posix_panic("Unable to aquire kernel lock.\n");
 
 	/* Wait until interrupts are ok. */
-	while (!posix_interrupts_enabled)
-	{
+	while (!posix_interrupts_enabled) {
 		if (
 			pthread_cond_wait(
 				&posix_interrupt_enabled_signal,
@@ -931,7 +928,6 @@ void posix_ext_interrupt_generate(int id)
 			posix_panic("Unable to wait until we can run the interrupt.\n");
 	}
 
-	/* Clear the interrupt ack. */
 	ack_clear(posix_interrupt_ack);
 
 	/* Pre-empt the current thread. */
