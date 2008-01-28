@@ -32,40 +32,38 @@
 #define ENV_H_
 
 #if ! defined TT_MANGLED
-#	if defined ENV_POSIX
-#		include "posix/env.h"
-#	elif defined ENV_MSP430
-#		include "msp430/env.h"
-#	elif defined ENV_AVR
-#		include "avr5/env.h"
-#	elif defined ENV_PIC18
-#		include "pic18/env.h"
-#	elif defined ENV_ARM7
-#		include "arm7/env.h"
-#	elif defined ENV_MIPS
-#		include "mips/env.h"
-#	elif defined ENV_M16C
-#		include "m16c/env.h"
-#	elif defined ENV_SKEL
-#		include "skel/env.h"
+#	if ! defined TT_SRP
+#		if defined ENV_POSIX
+#			include "posix/env.h"
+#		elif defined ENV_MSP430
+#			include "msp430/env.h"
+#		elif defined ENV_AVR
+#			include "avr5/env.h"
+#		elif defined ENV_PIC18
+#			include "pic18/env.h"
+#		elif defined ENV_ARM7
+#			include "arm7/env.h"
+#		elif defined ENV_MIPS
+#			include "mips/env.h"
+#		elif defined ENV_M16C
+#			include "m16c/env.h"
+#		elif defined ENV_SKEL
+#			include "skel/env.h"
+#		else
+#			error Unknown environment.
+#		endif
 #	else
-#		error Unknown environment.
+#		if defined ENV_POSIX
+#			include "posix_srp/env.h"
+#		else
+#			error Unknown environment.
+#		endif
 #	endif
 #endif
 
 /* ************************************************************************** */
 /* ********************************** DEFAULT ******************************* */
 /* ************************************************************************** */
-
-/**
- * \brief Environment thread entry macro.
- *
- * If the environment did not supply this macro then supply default
- * of nothing.
- */
-#ifndef ENV_THREAD_ENTRY
-#	define ENV_THREAD_ENTRY
-#endif
 
 /**
  * \brief Environment inline macro.
@@ -119,20 +117,24 @@
 #	error Environment did not define ENV_PANIC().
 #endif
 
-#ifndef ENV_NUM_THREADS
-#	error Environment did not define ENV_NUM_THREADS.
-#endif
-
-#ifndef ENV_CONTEXT_INIT
-#	error Environment did not define ENV_CONTEXT_INIT().
-#endif
-
-#ifndef ENV_CONTEXT_DISPATCH
-#	error Environment did not define ENV_CONTEXT_DISPATCH().
-#endif
-
 #ifndef ENV_IDLE
 #	error Environment did not define ENV_IDLE()
+#endif
+
+#if defined ENV_TIME_NEW
+
+#	ifndef ENV_TIME_LT
+#		error Environment did not define ENV_TIME_LT()
+#	endif
+
+#	ifndef ENV_TIME_LE
+#		error Environment did not define ENV_TIME_LE()
+#	endif
+
+#	ifndef ENV_TIME_ADD
+#		error Environment did not define ENV_TIME_ADD()
+#	endif
+
 #endif
 
 #ifndef ENV_TIMER_START
@@ -167,9 +169,24 @@
 #	error Environment did not define ENV_STARTUP().
 #endif
 
-#ifdef ENV_PREEMPTIVE_INTERRUPTS
-#	error Environment defined ENV_PREEMPTIVE_INTERRUPTS but there \
-are no guidelines for this yet.
+/* ************************************************************************** */
+/* ***************************** SANITY (NON-SRP)**************************** */
+/* ************************************************************************** */
+
+#if ! defined TT_SRP
+
+#	ifndef ENV_NUM_THREADS
+#		error Environment did not define ENV_NUM_THREADS.
+#	endif
+
+#	ifndef ENV_CONTEXT_INIT
+#		error Environment did not define ENV_CONTEXT_INIT().
+#	endif
+
+#	ifndef ENV_CONTEXT_DISPATCH
+#		error Environment did not define ENV_CONTEXT_DISPATCH().
+#	endif
+
 #endif
 
 #endif

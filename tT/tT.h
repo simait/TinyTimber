@@ -54,7 +54,17 @@ typedef struct tt_thread_t tt_thread_t;
  */
 typedef struct tt_object_t
 {
-#if defined TT_SRP
+#if ! defined TT_SRP
+	/**
+	 * \brief The thread that owns this object.
+	 */
+	tt_thread_t *owned_by;
+
+	/**
+	 * \brief The thread that wants this object.
+	 */
+	tt_thread_t *wanted_by;
+#else
 	/**
 	 * \brief The object resource description.
 	 */
@@ -69,16 +79,6 @@ typedef struct tt_object_t
 		 */
 		env_resource_t req;
 	} resource;
-#else
-	/**
-	 * \brief The thread that owns this object.
-	 */
-	tt_thread_t *owned_by;
-
-	/**
-	 * \brief The thread that wants this object.
-	 */
-	tt_thread_t *wanted_by;
 #endif
 } tt_object_t;
 
@@ -87,10 +87,10 @@ typedef struct tt_object_t
 /**
  * \brief tinyTimber object "constructor".
  */
-#if defined TT_SRP
-#	define tt_object(id, req) {{id, req}}
-#else
+#if ! defined TT_SRP
 #	define tt_object() {NULL, NULL}
+#else
+#	define tt_object(id, req) {{(1<<(id)), req}}
 #endif
 
 /* ************************************************************************** */
@@ -187,7 +187,7 @@ extern char tt_args_none;
  * Same as TT_ASYNC() but with receipt.
  */
 #define TT_ASYNC_R(to, meth, arg, rec) \
-	TT_ACTION_R(0, 0, to, meth, arg, rec)
+	TT_ACTION_R(ENV_SEC(0), ENV_SEC(0), to, meth, arg, rec)
 
 /* ************************************************************************** */
 
@@ -207,7 +207,7 @@ extern char tt_args_none;
  * Same as TT_AFTER() but with receipt.
  */
 #define TT_AFTER_R(bl, to, meth, arg, rec) \
-	TT_ACTION_R(bl, 0, to, meth, arg, rec)
+	TT_ACTION_R(bl, ENV_SEC(0), to, meth, arg, rec)
 
 /* ************************************************************************** */
 
@@ -227,7 +227,7 @@ extern char tt_args_none;
  * Same as TT_BEFORE() but with receipt.
  */
 #define TT_BEFORE_R(dl, to, meth, arg, rec) \
-	TT_ACTION_R(0, dl, to, meth, arg, rec)
+	TT_ACTION_R(ENV_SEC(0), dl, to, meth, arg, rec)
 
 /* ************************************************************************** */
 
@@ -268,16 +268,6 @@ extern char tt_args_none;
  */
 #define TT_SYNC(to, meth, arg) \
 	tt_request((tt_object_t *)to, (tt_method_t)meth, arg)
-
-/* ************************************************************************** */
-
-/**
- * \brief tinyTimber TT_SCHEDULE() macro.
- *
- * Just supplied this for visibility.
- */
-#define TT_SCHEDULE() \
-	tt_schedule()
 
 /* ************************************************************************** */
 

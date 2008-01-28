@@ -28,76 +28,70 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <tT.h>
+#include <env.h>
+
+#include <objects_srp.h>
+
+#include <app_objects.h>
+
+static void object_calc_req(tt_object_t *object) {
+	int i;
+	tt_object_t **tmp = app_objects;
+	env_resource_t mask = 1;
+
+	for (i=0;i<APP_OBJECT_ID_MAX;i++,mask <<= 1,tmp++) {
+		if (mask > object->resource.req) {
+			break;
+		}
+
+		if (mask & object->resource.req) {
+			if (!(*tmp)->resource.req & (*tmp)->resource.id) {
+				/* Requirements for this object not yet calculated. */
+				object_calc_req(*tmp);
+			}
+			
+			/* Merge resource requirements. */
+			object->resource.req |= (*tmp)->resource.req;
+		}
+	}
+
+	/* 
+	 * Set the object resource id in the requirements field to indicate
+	 * that recursive calculation has already been done.
+	 */
+	object->resource.req |= object->resource.id;
+}
+
 /**
- * \file
- * \brief The TinyTimber Kernel environment interface (For SRP).
+ * \brief TinyTimber SRP object requirement calculation.
  *
- * If possible avoid exporting this interface to the user via the environment.
+ * Performs a recursive object requirement calculation. Easier for the
+ * programmer 
  */
+void tt_objects_init(void)
+{
+	int i;
+	tt_object_t **tmp = app_objects;
 
-#ifndef KERNEL_H_
-#define KERNEL_H_
-
-/*
- * Following files should not be included in case the file is mangled.
- */
-#if ! defined TT_MANGLED
-#	include <tT.h>
-#	include <types.h>
-#endif
-
-/* ************************************************************************** */
-
-/**
- * \brief TinyTimber message typedef.
- */
-typedef struct tt_message_t tt_message_t;
-
-/* ************************************************************************** */
-
-int tt_expired(env_time_t);
-
-/* ************************************************************************** */
-
-#ifndef TT_NUM_MESSAGES
-	/**
-	 * \brief The number of messages that the kernel facillitates.
-	 */
-#	define TT_NUM_MESSAGES	10
-#endif
-
-/* ************************************************************************** */
-
-#ifndef TT_ARGS_SIZE
-	/**
-	 * \brief The size of the variable argument buffer.
-	 */
-#	define TT_ARGS_SIZE		8
-#endif
-
-/* ************************************************************************** */
-
-#ifdef TT_KERNEL_SANITY
-	/** \cond */
-#	define _STR(str) #str
-#	define STR(str) _STR(str)
-	/** \endcond */
+	if (APP_OBJECT_ID_MAX >= ENV_RESOURCE_MAX) {
+		ENV_PANIC("tt_object_init(): Maximum number of objects exceeded.\n");
+	}
 	
-	/**
-	 * \brief The kernel sanity macro.
-	 *
-	 * Should only be used for debugging purposes. Used whenever
-	 * TT_KERNEL_SANITY is defined. Will fail whenever the expression
-	 * supplied is not evaluated as true.
+	/*
+	 * For each object we will traverse the list of requirements and
+	 * add them to the list recursively.
 	 */
-#	define TT_SANITY(expr) \
-		if (!(expr))\
-			ENV_PANIC(\
-					__FILE__ ":" STR(__LINE__) " ("\
-					#expr ") failed sanity check.\n"\
-					)
-#else
-#	define TT_SANITY(expr)
-#endif
+	for (i=0;i<APP_OBJECT_ID_MAX;i++,tmp++) {
+		if (ENV_RESOURCE(i) != (*tmp)->resource.id) {
+			ENV_PANIC("tt_objects_init(): ID missmatch, check app_objects.\n");
+		}
 
-#endif
+		if ((*tmp)->resource.req & (*tmp)->resource.id) {
+			/* Requirements already calculated. */
+			continue;
+		}
+
+		object_calc_req(*tmp);
+	}
+}

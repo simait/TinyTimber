@@ -47,14 +47,14 @@
 	/*
 	 * Environment specific eaders.
 	 */
-#	include <posix_srp/types.h>
-#	include <posix_srp/env.h>
-#	include <range.h>
+#	include <env.h>
+#	include <types.h>
 
 	/*
 	 * TinyTimber specific headers.
 	 */
 #	include <kernel_srp.h>
+#	include <objects_srp.h>
 #endif
 
 /**
@@ -326,6 +326,9 @@ void tt_init(void)
 	for (i=0;i<TT_NUM_MESSAGES;i++)
 		message_pool[i].next = &message_pool[i+1];
 	message_pool[TT_NUM_MESSAGES-1].next = NULL;
+
+	/* Initialize all object requirements. */
+	tt_objects_init();
 }
 
 /* ************************************************************************** */
@@ -483,6 +486,7 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 
 	TT_SANITY(to);
 	TT_SANITY(method);
+	TT_SANITY(to->resource.id & to->resource.req);
 
 	ENV_PROTECT(1);
 
