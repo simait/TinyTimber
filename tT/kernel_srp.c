@@ -718,12 +718,6 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 		result = 0;
 	}
 
-	/* 
-	 * The chances that this will fail are slim to none, but well I'm feeling
-	 * paranoid.
-	 */
-	TT_SANITY(ENV_ISPROTECTED());
-
 	ENV_PROTECT(protected);
 	return result;
 }
