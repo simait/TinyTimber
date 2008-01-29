@@ -32,6 +32,7 @@
 #define ENV_POSIX_TYPES_H_
 
 /* Standard C headers. */
+#include <time.h>
 #include <signal.h>
 #include <stdint.h>
 
@@ -77,7 +78,7 @@ typedef struct posix_context_t env_context_t;
 /**
  * \brief Typedef so that tinyTimber knows that time is.
  */
-typedef unsigned long env_time_t;
+typedef struct timespec env_time_t;
 
 /**
  * \brief Typedef so that tinyTimber knows what a result is.

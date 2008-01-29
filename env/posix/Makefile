@@ -21,7 +21,7 @@ ENV_MCU				:= -Wfatal-errors
 # override so check if it's defined.
 ################################################################################
 
-ENV_DEF 		= -DENV_POSIX=1 -DPOSIX_TICK=100000
+ENV_DEF 		= -DENV_POSIX=1
 ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/env.c\
 				  $(ENV_ROOT)/$(ENV_ARCH)/ack.c
 
@@ -29,4 +29,4 @@ ENV_INC			= -I$(ENV_ROOT)
 ifndef ENV_CFLAGS
 ENV_CFLAGS		= -O2 -Wall -g
 endif
-ENV_LDFLAGS		= -lpthread
+ENV_LDFLAGS		= -lpthread -lrt

@@ -39,7 +39,7 @@
 #include <unistd.h>
 
 /* Environment headers. */
-#include <posix/types.h>
+#include <types.h>
 
 /* tinyTimber headers. */
 #include <tT.h>
@@ -55,11 +55,7 @@ void posix_timer_start(void);
 void posix_context_dispatch(env_context_t *);
 void posix_idle(void);
 env_time_t posix_timestamp(void);
-env_time_t posix_timer_get(void);
-void posix_timer_set(env_time_t);
-env_time_t posix_usec(env_time_t);
-env_time_t posix_msec(env_time_t);
-env_time_t posix_sec(env_time_t);
+void posix_timer_set(const env_time_t *);
 
 void posix_ext_interrupt_handler(int, posix_ext_interrupt_handler_t);
 void posix_ext_interrupt_generate(int);
@@ -147,7 +143,7 @@ void posix_ext_interrupt_generate(int);
  * Will start running the environment timer.
  */
 #define ENV_TIMER_START() \
-	posix_timer_start()
+	((void)0)
 
 /* ************************************************************************** */
 
@@ -188,7 +184,7 @@ void posix_ext_interrupt_generate(int);
  * \brief Environment timer set macro.
  */
 #define ENV_TIMER_SET(time) \
-	posix_timer_set(time)
+	posix_timer_set(&(time))
 
 /* ************************************************************************** */
 
@@ -197,6 +193,30 @@ void posix_ext_interrupt_generate(int);
  */
 #define ENV_TIMESTAMP() \
 	posix_timestamp()
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time add macro.
+ */
+#define ENV_TIME_ADD(v0, v1) \
+	posix_time_add(&v0, &v1)
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time less than or equal to macro.
+ */
+#define ENV_TIME_LE(v0, v1) \
+	(((v0).tv_sec <= (v1).tv_sec) && ((v0).tv_nsec <= (v1).tv_nsec))
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time less than macro.
+ */
+#define ENV_TIME_LT(v0, v1) \
+	(((v0).tv_sec < (v1).tv_sec) || (((v0).tv_sec == (v1).tv_sec) && ((v0).tv_nsec < (v1).tv_nsec)))
 
 /* ************************************************************************** */
 
@@ -255,5 +275,89 @@ int main(void)\
  */
 #define ENV_EXT_INTERRUPT_GENERATE(id) \
 	posix_ext_interrupt_generate(id)
+
+/* ************************************************************************** */
+
+static inline env_time_t posix_timer_get(void)
+{
+	struct timespec tmp;
+	clock_gettime(CLOCK_REALTIME, &tmp);
+	return tmp;
+}
+
+/* ************************************************************************** */
+
+static inline struct timespec posix_time_add(
+		struct timespec *v0,
+		struct timespec *v1
+		)
+{
+	struct timespec tmp;
+	if ((v0->tv_nsec + v1->tv_nsec) > 1000000000UL) {
+		tmp.tv_sec = v0->tv_sec + v1->tv_sec + 1;
+		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec - 1000000000UL;
+	} else {
+		tmp.tv_sec = v0->tv_sec + v1->tv_sec;
+		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec;
+	}
+	return tmp;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX seconds conversion function.
+ *
+ * \param seconds The number of seconds.
+ * \return The env_time_t representing the number of seconds specified.
+ */
+static inline struct timespec posix_sec(unsigned long seconds)
+{
+	struct timespec tmp = {.tv_sec = seconds, .tv_nsec = 0};
+	return tmp;
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX nano seconds conversion function.
+ *
+ * \param nseconds The number of nano seconds.
+ * \return The env_time_t representing the number of nano seconds specified.
+ */
+static inline struct timespec posix_msec(unsigned long mseconds)
+{
+	struct timespec tmp;
+	if (mseconds >= 1000UL) {
+		tmp.tv_sec = mseconds / 1000UL;
+		tmp.tv_nsec = (mseconds % 1000UL) * 1000UL;
+	} else {
+		tmp.tv_sec = 0;
+		tmp.tv_nsec = mseconds * 1000000UL;
+	}
+	return tmp;
+}
+
+/* ************************************************************************** */
+
+
+/**
+ * \brief POSIX micro seconds conversion function.
+ *
+ * \param useconds The number of micro seconds.
+ * \return The env_time_t representing the number of micro seconds specified.
+ */
+static inline struct timespec posix_usec(unsigned long useconds)
+{
+	struct timespec tmp;
+	if (useconds >= 1000000UL) {
+		tmp.tv_sec = useconds / 1000000UL;
+		tmp.tv_nsec = (useconds % 1000000UL) * 1000UL;
+	} else {
+		tmp.tv_sec = 0;
+		tmp.tv_nsec = useconds;
+	}
+	return tmp;
+}
 
 #endif
