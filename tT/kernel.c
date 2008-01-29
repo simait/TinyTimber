@@ -133,8 +133,9 @@ struct tt_message_t
 static void *memset(void *ptr, int n, size_t n)
 {
 	signed char tmp = ptr;
-	while (n--)
+	while (n--) {
 		*((signed char *)tmp++) = n;
+	}
 	return ptr;
 }
 
@@ -153,8 +154,9 @@ static void *memset(void *ptr, int n, size_t n)
 static void memcpy(void *dest, const void *src, size_t n)
 {
 	unsigned char *d = dest, *s = src;
-	while (n--)
+	while (n--) {
 		*d++ = *s++;
+	}
 	return dest;
 }
 #endif
@@ -287,8 +289,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
 	while (
 			tmp &&
 			ULONG_LE(tmp->deadline, msg->deadline)
-		  )
-	{
+		  ) {
 		/* Next item in the list. */
 		prev = tmp;
 		tmp = tmp->next;
@@ -296,10 +297,11 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
 
 	/* Insert the message into the list, check for head etc. */
 	msg->next = tmp;
-	if (prev)
+	if (prev) {
 		prev->next = msg;
-	else
+	} else {
 		*list = msg;
+	}
 }
 
 /* ************************************************************************** */
@@ -319,8 +321,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 	while (
 			tmp &&
 			(ULONG_LE(tmp->baseline, msg->baseline))
-		  )
-	{
+		  ) {
 		/* Next item in the list. */
 		prev = tmp;
 		tmp = tmp->next;
@@ -328,10 +329,11 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 
 	/* Insert the message into the list, check for head etc. */
 	msg ->next = tmp;
-	if (prev)
+	if (prev) {
 		prev->next = msg;
-	else
+	} else {
 		*list = msg;
+	}
 }
 
 /* ************************************************************************** */
@@ -346,8 +348,7 @@ static ENV_CODE_FAST void tt_thread_run(void)
 	tt_thread_t *tmp;
 	tt_message_t *this;
 
-	for (;;)
-	{
+	for (;;) {
 		/*
 		 * This must always be entered in protected mode. Also we can not
 		 * always control when/how interrupts are enabled so we must always
@@ -365,8 +366,9 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		 * also cancel any receipt.
 		 */
 		DEQUEUE(messages.active, this);
-		if (this->receipt)
+		if (this->receipt) {
 			this->receipt->msg = NULL;
+		}
 		CURRENT()->msg = this;
 
 		TT_SANITY(this->to);
@@ -393,23 +395,31 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		 * we might sleep/idle instead but that requires some changes
 		 * to the code that is non-trivial.
 		 */
-		if (messages.active == NULL)
+		if (messages.active == NULL) {
 			goto yield;
+		}
 
 
 		/*
 		 * Check for pre-empted threads. If there are none we will run
 		 * the next message.
 		 */
-		if (!CURRENT()->next)
+		if (!CURRENT()->next) {
 			continue;
+		}
 
 		/*
 		 * Check if the deadline of the pre-empted thread is earlier than
 		 * the deadline of the next message.
 		 */
-		if (ULONG_LE(CURRENT()->next->msg->deadline, messages.active->deadline))
+		if (
+			ULONG_LE(
+				CURRENT()->next->msg->deadline,
+				messages.active->deadline
+				)
+			) {
 			goto yield;
+		}
 
 		/*
 		 * Ok, the next message must exist and have a deadline that is earlier
@@ -436,22 +446,20 @@ yield:
 		 * thread, if there are pre-empted threads then run the most
 		 * recently pre-empted one(should have the shortest baseline).
 		 */
-		if (threads.active)
-		{
+		if (threads.active) {
 			/*
 			 * There are pre-empted threads, however they might be
 			 * blocked. There must be at least one thread that is
 			 * unblocked or the system is seriously broken.
 			 */
 			tmp = threads.active;
-			while (tmp->waits_for)
+			while (tmp->waits_for) {
 				tmp = tmp->waits_for->owned_by;
+			}
 			TT_SANITY(tmp);
 			ENV_CONTEXT_DISPATCH(tmp);
 			TT_SANITY(ENV_ISPROTECTED());
-		}
-		else
-		{
+		} else {
 			/*
 			 * No pre-empted threads, dispatch the idle thread.
 			 */
@@ -499,8 +507,9 @@ void tt_init(void)
 	messages.inactive = NULL;
 	memset(message_pool, 0, sizeof(message_pool));
 	messages.free = message_pool;
-	for (i=0;i<TT_NUM_MESSAGES;i++)
+	for (i=0;i<TT_NUM_MESSAGES;i++) {
 		message_pool[i].next = &message_pool[i+1];
+	}
 	message_pool[TT_NUM_MESSAGES-1].next = NULL;
 
 	/* 
@@ -553,8 +562,9 @@ void tt_run(void)
 	 * Make sure first timer interrupt is scheduled before we start the
 	 * timer.
 	 */
-	if (messages.active)
+	if (messages.active) {
 		ENV_TIMER_SET(messages.active->baseline);
+	}
 	ENV_TIMER_START();
 
 	/*
@@ -580,23 +590,31 @@ ENV_CODE_FAST void tt_schedule(void)
 	 * shouldn't call this unless there are messages that need
 	 * scheduling but better safe than sorry.
 	 */
-	if (!messages.active)
+	if (!messages.active) {
 		return;
+	}
 
 	/*
 	 * If the current thread is the idle thread then we will
 	 * unconditionally run a new thread since idle has the lowest
 	 * priority of all the threads.
 	 */
-	if (tt_current == threads.idle)
+	if (tt_current == threads.idle) {
 		goto schedule_new;
+	}
 
 	/*
 	 * Check if the deadline of the next message is earlier than the deadline
 	 * of the last activated thread(may not be CURRENT()).
 	 */
-	if (ULONG_LE(threads.active->msg->deadline, messages.active->deadline))
+	if (
+		ULONG_LE(
+			threads.active->msg->deadline,
+			messages.active->deadline
+			)
+		) {
 		return;
+	}
 
 schedule_new:
 
@@ -604,8 +622,7 @@ schedule_new:
 	 * Schedule a new thread, first of all make sure there is a thread to
 	 * schedule then go for it.
 	 */
-	if (!threads.inactive)
-	{
+	if (!threads.inactive) {
 		TT_SANITY(threads.idle);
 		ENV_PANIC("tt_schedule(): Out of threads.\n");
 	}
@@ -645,8 +662,10 @@ int ENV_CODE_FAST tt_expired(env_time_t now)
 	 * Push all the inactive messages that became active onto the
 	 * active list.
 	 */
-	while (	messages.inactive && ULONG_LE(messages.inactive->baseline, now))
-	{
+	while (
+			messages.inactive &&
+			ULONG_LE(messages.inactive->baseline, now)
+			) {
 		DEQUEUE(messages.inactive, tmp);
 		enqueue_by_deadline(&messages.active, tmp);
 	}
@@ -655,8 +674,9 @@ int ENV_CODE_FAST tt_expired(env_time_t now)
 	 * If there are still inactive messages update the timer to the next
 	 * absolute baseline.
 	 */
-	if (messages.inactive)
+	if (messages.inactive) {
 		ENV_TIMER_SET(messages.inactive->baseline);
+	}
 
 	return old_head != messages.active;
 }
@@ -698,21 +718,22 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 	 * that something else run until it is done with the object.
 	 */
 	tmp = to->owned_by;
-	if (tmp)
-	{
+	if (tmp) {
 		/*
 		 * Object that owns the requested object might in turn be
 		 * blocked.
 		 */
-		while (tmp->waits_for)
+		while (tmp->waits_for) {
 			tmp = tmp->waits_for->owned_by;
+		}
 
 		/*
 		 * Deadlocks can only be caused by circular references, thus we
 		 * can easily check it in this manner.
 		 */
-		if (CURRENT() == tmp)
+		if (CURRENT() == tmp) {
 			ENV_PANIC("tt_request(): Deadlock.\n");
+		}
 
 		/*
 		 * If someone else wants this then we must save this for later
@@ -736,8 +757,9 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		 * If there was someone waiting for the object then we will make
 		 * sure that it is no longer waiting for the object.
 		 */
-		if (old_wanted_by)
+		if (old_wanted_by) {
 			old_wanted_by->waits_for = NULL;
+		}
 	}
 
 	/*
@@ -757,8 +779,7 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 	 * shorter deadline and must thus be allowed to run now.
 	 */
 	tmp = to->wanted_by;
-	if (tmp)
-	{
+	if (tmp) {
 		to->wanted_by = NULL;
 		tmp->waits_for = NULL;
 		ENV_CONTEXT_DISPATCH(tmp);
@@ -805,17 +826,20 @@ ENV_CODE_FAST void tt_action(
 	TT_SANITY(method);
 	TT_SANITY(arg);
 	TT_SANITY(size);
+	TT_SANITY(size <= TT_ARGS_SIZE);
 
 	ENV_PROTECT(1);
 
 	/* This is _VERY_ important, this can and will f*ck up. */
-	if (!messages.free)
+	if (!messages.free) {
 		ENV_PANIC("tt_action(): Out of messages.\n");
+	}
 
 	DEQUEUE(messages.free, msg);
 	msg->receipt = receipt;
-	if (receipt)
+	if (receipt) {
 		receipt->msg = msg;
+	}
 
 	/*
 	 * The base (used to calculate the baseline of the message) is
@@ -824,10 +848,11 @@ ENV_CODE_FAST void tt_action(
 	 * to the time when the interrupt was triggerted. The deadline is
 	 * implicitly depending on this since it's realtive to the baseline.
 	 */
-	if (protected)
+	if (protected) {
 		base = ENV_TIMESTAMP();
-	else
+	} else {
 		base = CURRENT()->msg->baseline;
+	}
 
 #if defined ENV_PREEMPTIVE_INTERRUPTS
 	/*
@@ -860,16 +885,18 @@ ENV_CODE_FAST void tt_action(
 	 * 	deadlines/baselines.
 	 */
 	msg->baseline = base + bl;
-	if (ULONG_LT(msg->baseline, ENV_TIMER_GET()))
+	if (ULONG_LT(msg->baseline, ENV_TIMER_GET())) {
 		msg->baseline = ENV_TIMER_GET();
+	}
 
 	msg->deadline = msg->baseline + dl;
 	msg->to = to;
 	msg->method = method;
 
-	TT_SANITY(size <= TT_ARGS_SIZE);
-
-	memcpy(&msg->arg, arg, size);
+	/* Only copy the arguments if there are none. */
+	if (arg != &tt_args_none) {
+		memcpy(&msg->arg, arg, size);
+	}
 
 	ENV_PROTECT(1);
 
@@ -877,13 +904,13 @@ ENV_CODE_FAST void tt_action(
 	 * If baseline expired already then we should place the message in
 	 * the active list, otherwise the inactive list.
 	 */
-	if (ULONG_LE(msg->baseline, ENV_TIMER_GET()))
+	if (ULONG_LE(msg->baseline, ENV_TIMER_GET())) {
 		enqueue_by_deadline(&messages.active, msg);
-	else
-	{
+	} else {
 		enqueue_by_baseline(&messages.inactive, msg);
-		if (messages.inactive == msg)
+		if (messages.inactive == msg) {
 			ENV_TIMER_SET(msg->baseline);
+		}
 	}
 
 	ENV_PROTECT(protected);
@@ -917,26 +944,23 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 	 * If we cannot find the message then we have a BUG! (given that the
 	 * recipet is valid).
 	 */
-	if (receipt->msg)
-	{
+	if (receipt->msg) {
 		tmp = messages.inactive;
-		while (tmp && tmp != receipt->msg)
-		{
+		while (tmp && tmp != receipt->msg) {
 			prev = tmp;
 			tmp = tmp->next;
 		}
 
-		if (!tmp)
-		{
+		if (!tmp) {
 			tmp = messages.active;
-			while (tmp && tmp != receipt->msg)
-			{
+			while (tmp && tmp != receipt->msg) {
 				prev = tmp;
 				tmp = tmp->next;
 			}
 
-			if (!tmp)
+			if (!tmp) {
 				ENV_PANIC("tt_cancel(): Unable to find message.\n");
+			}
 		}
 
 		/*
@@ -944,21 +968,20 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 		 * list accordingly.
 		 */
 
-		if (prev)
+		if (prev) {
 			prev->next = tmp->next;
-		else
-		{
+		} else {
 			/*
 			 * Message was the head of some list, update accordingly.
 			 */
-			if (tmp == messages.inactive)
-			{
+			if (tmp == messages.inactive) {
 				messages.inactive = messages.inactive->next;
-				if (messages.inactive)
+				if (messages.inactive) {
 					ENV_TIMER_SET(messages.inactive->baseline);
-			}
-			else
+				}
+			} else {
 				messages.active = messages.active->next;
+			}
 		}
 
 		/*
@@ -969,8 +992,6 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 		receipt->msg = NULL;
 		result = 0;
 	}
-
-	TT_SANITY(ENV_ISPROTECTED());
 
 	ENV_PROTECT(protected);
 	return result;
