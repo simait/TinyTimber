@@ -51,11 +51,8 @@ void posix_panic(const char * const);
 void posix_context_init(posix_context_t *, void (*)(void));
 void posix_protect(int);
 int  posix_isprotected(void);
-void posix_timer_start(void);
 void posix_context_dispatch(env_context_t *);
 void posix_idle(void);
-env_time_t posix_timestamp(void);
-void posix_timer_set(const env_time_t *);
 
 void posix_ext_interrupt_handler(int, posix_ext_interrupt_handler_t);
 void posix_ext_interrupt_generate(int);
@@ -280,19 +277,46 @@ int main(void)\
 
 static inline env_time_t posix_timer_get(void)
 {
-	struct timespec tmp;
+	env_time_t tmp;
 	clock_gettime(CLOCK_REALTIME, &tmp);
 	return tmp;
 }
 
 /* ************************************************************************** */
 
-static inline struct timespec posix_time_add(
-		struct timespec *v0,
-		struct timespec *v1
+/**
+ * \brief POSIX set timer function.
+ *
+ * \param next The next baseline.
+ */
+static inline void posix_timer_set(const env_time_t *next)
+{
+	extern timer_t posix_timer;
+	struct itimerspec tmp = {.it_value = *next};
+	timer_settime(posix_timer, TIMER_ABSTIME, &tmp, NULL);
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX get the timestamp.
+ *
+ * \return The timestamp of the most recent interrupt.
+ */
+static inline env_time_t posix_timestamp(void)
+{
+	extern env_time_t posix_timer_timestamp;
+	return posix_timer_timestamp;
+}
+
+/* ************************************************************************** */
+
+static inline env_time_t posix_time_add(
+		env_time_t *v0,
+		env_time_t *v1
 		)
 {
-	struct timespec tmp;
+	env_time_t tmp;
 	if ((v0->tv_nsec + v1->tv_nsec) > 1000000000UL) {
 		tmp.tv_sec = v0->tv_sec + v1->tv_sec + 1;
 		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec - 1000000000UL;
@@ -311,9 +335,9 @@ static inline struct timespec posix_time_add(
  * \param seconds The number of seconds.
  * \return The env_time_t representing the number of seconds specified.
  */
-static inline struct timespec posix_sec(unsigned long seconds)
+static inline env_time_t posix_sec(unsigned long seconds)
 {
-	struct timespec tmp = {.tv_sec = seconds, .tv_nsec = 0};
+	env_time_t tmp = {.tv_sec = seconds, .tv_nsec = 0};
 	return tmp;
 }
 
@@ -325,9 +349,9 @@ static inline struct timespec posix_sec(unsigned long seconds)
  * \param nseconds The number of nano seconds.
  * \return The env_time_t representing the number of nano seconds specified.
  */
-static inline struct timespec posix_msec(unsigned long mseconds)
+static inline env_time_t posix_msec(unsigned long mseconds)
 {
-	struct timespec tmp;
+	env_time_t tmp;
 	if (mseconds >= 1000UL) {
 		tmp.tv_sec = mseconds / 1000UL;
 		tmp.tv_nsec = (mseconds % 1000UL) * 1000UL;
@@ -347,9 +371,9 @@ static inline struct timespec posix_msec(unsigned long mseconds)
  * \param useconds The number of micro seconds.
  * \return The env_time_t representing the number of micro seconds specified.
  */
-static inline struct timespec posix_usec(unsigned long useconds)
+static inline env_time_t posix_usec(unsigned long useconds)
 {
-	struct timespec tmp;
+	env_time_t tmp;
 	if (useconds >= 1000000UL) {
 		tmp.tv_sec = useconds / 1000000UL;
 		tmp.tv_nsec = (useconds % 1000000UL) * 1000UL;

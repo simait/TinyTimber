@@ -80,8 +80,6 @@
 /*
  * Internal state variables etc.
  */
-static timer_t timer;
-static env_time_t timestamp;
 static pthread_key_t thread_mode;
 static pthread_key_t thread_context;
 static int posix_num_threads;
@@ -94,6 +92,12 @@ static ack_t *interrupt_ack;
 static sig_atomic_t posix_interrupt;
 static volatile sig_atomic_t interrupts_enabled;
 static posix_ext_interrupt_handler_t posix_interrupt_vector[POSIX_NUM_INTERRUPTS];
+
+/*
+ * Semi private internal but used in the header file.
+ */
+timer_t posix_timer;
+env_time_t posix_timer_timestamp;
 
 /* ************************************************************************** */
 
@@ -124,7 +128,7 @@ static void interrupt_handler(int sig)
 	 */
 	interrupt = posix_interrupt;
 	ack_set(interrupt_ack);
-	clock_gettime(CLOCK_REALTIME, &timestamp);
+	clock_gettime(CLOCK_REALTIME, &posix_timer_timestamp);
 
 	posix_interrupt_vector[interrupt](interrupt);
 
@@ -406,14 +410,14 @@ void posix_init(void)
 	memset(&timer_event, 0, sizeof(timer_event));
 	timer_event.sigev_notify = SIGEV_SIGNAL;
 	timer_event.sigev_signo = SIGALRM;
-	timer_create(CLOCK_REALTIME, &timer_event, &timer);
+	timer_create(CLOCK_REALTIME, &timer_event, &posix_timer);
 
 	/*
 	 * Set the timestamp to a somewhat meaningfull value, since we don't
 	 * exactly "start" the timer we just assume that the startup is negligable.
 	 */
 
-	clock_gettime(CLOCK_REALTIME, &timestamp);
+	clock_gettime(CLOCK_REALTIME, &posix_timer_timestamp);
 
 	/* Create the timer thread. */
 	if (pthread_create(&timer_interrupt, NULL, timer_thread, NULL)) {
@@ -683,32 +687,6 @@ void posix_context_dispatch(posix_context_t *thread)
 				"Unable to aquire context lock.\n"
 				);
 	}
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief POSIX set timer function.
- *
- * \param next The next baseline.
- */
-void posix_timer_set(const env_time_t *next)
-{
-	struct itimerspec tmp = {.it_value = *next};
-	timer_settime(timer, TIMER_ABSTIME, &tmp, NULL);
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief POSIX get the timestamp.
- *
- * \return The timestamp of the most recent interrupt.
- */
-env_time_t posix_timestamp(void)
-{
-	/* Return the last timestamp. */
-	return timestamp;
 }
 
 /* ************************************************************************** */
