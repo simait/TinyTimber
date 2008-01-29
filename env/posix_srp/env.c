@@ -45,7 +45,6 @@
 
 static sigset_t sigmask_protect;
 static sigset_t sigmask_unprotect;
-static int protected;
 static pthread_t root;
 
 /*
@@ -53,6 +52,7 @@ static pthread_t root;
  */
 env_time_t posix_srp_timer_timestamp;
 timer_t posix_srp_timer;
+int posix_srp_protected;
 
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void posix_srp_init(void)
 	sigdelset(&sigmask_unprotect, SIGALRM);
 	sigdelset(&sigmask_unprotect, SIGUSR1);
 	
-	protected = 1;
+	posix_srp_protected = 1;
 	pthread_sigmask(SIG_SETMASK, &sigmask_protect, NULL);
 
 	memset(&signal_action, 0, sizeof(signal_action));
@@ -121,18 +121,11 @@ void posix_srp_protect(int state)
 {
 	if (state) {
 		pthread_sigmask(SIG_SETMASK, &sigmask_protect, NULL);
-		protected = 1;
+		posix_srp_protected = 1;
 	} else {
-		protected = 0;
+		posix_srp_protected = 0;
 		pthread_sigmask(SIG_SETMASK, &sigmask_unprotect, NULL);
 	}
-}
-
-/* ************************************************************************** */
-
-int posix_srp_isprotected(void)
-{
-	return protected;
 }
 
 /* ************************************************************************** */

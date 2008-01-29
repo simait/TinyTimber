@@ -169,6 +169,14 @@ int main(void) {\
 
 /* ************************************************************************** */
 
+static inline int posix_srp_isprotected(void)
+{
+	extern int posix_srp_protected;
+	return posix_srp_protected;
+}
+
+/* ************************************************************************** */
+
 static inline void posix_srp_timer_set(const env_time_t *next)
 {
 	extern timer_t posix_srp_timer;
