@@ -194,30 +194,6 @@ void posix_ext_interrupt_generate(int);
 /* ************************************************************************** */
 
 /**
- * \brief Environments time add macro.
- */
-#define ENV_TIME_ADD(v0, v1) \
-	posix_time_add(&v0, &v1)
-
-/* ************************************************************************** */
-
-/**
- * \brief Environments time less than or equal to macro.
- */
-#define ENV_TIME_LE(v0, v1) \
-	(((v0).tv_sec <= (v1).tv_sec) && ((v0).tv_nsec <= (v1).tv_nsec))
-
-/* ************************************************************************** */
-
-/**
- * \brief Environments time less than macro.
- */
-#define ENV_TIME_LT(v0, v1) \
-	(((v0).tv_sec < (v1).tv_sec) || (((v0).tv_sec == (v1).tv_sec) && ((v0).tv_nsec < (v1).tv_nsec)))
-
-/* ************************************************************************** */
-
-/**
  * \brief Environment timer usec macro.
  */
 #define ENV_USEC(val) \
@@ -311,24 +287,6 @@ static inline env_time_t posix_timestamp(void)
 
 /* ************************************************************************** */
 
-static inline env_time_t posix_time_add(
-		env_time_t *v0,
-		env_time_t *v1
-		)
-{
-	env_time_t tmp;
-	if ((v0->tv_nsec + v1->tv_nsec) > 1000000000UL) {
-		tmp.tv_sec = v0->tv_sec + v1->tv_sec + 1;
-		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec - 1000000000UL;
-	} else {
-		tmp.tv_sec = v0->tv_sec + v1->tv_sec;
-		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec;
-	}
-	return tmp;
-}
-
-/* ************************************************************************** */
-
 /**
  * \brief POSIX seconds conversion function.
  *
@@ -344,10 +302,10 @@ static inline env_time_t posix_sec(unsigned long seconds)
 /* ************************************************************************** */
 
 /**
- * \brief POSIX nano seconds conversion function.
+ * \brief POSIX milli-seconds conversion function.
  *
- * \param nseconds The number of nano seconds.
- * \return The env_time_t representing the number of nano seconds specified.
+ * \param nseconds The number of milli-seconds.
+ * \return The env_time_t representing the number of milli-seconds specified.
  */
 static inline env_time_t posix_msec(unsigned long mseconds)
 {
@@ -364,12 +322,11 @@ static inline env_time_t posix_msec(unsigned long mseconds)
 
 /* ************************************************************************** */
 
-
 /**
- * \brief POSIX micro seconds conversion function.
+ * \brief POSIX micro-seconds conversion function.
  *
- * \param useconds The number of micro seconds.
- * \return The env_time_t representing the number of micro seconds specified.
+ * \param useconds The number of micro-seconds.
+ * \return The env_time_t representing the number of micro-seconds specified.
  */
 static inline env_time_t posix_usec(unsigned long useconds)
 {

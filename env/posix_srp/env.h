@@ -41,13 +41,12 @@
 
 void posix_srp_init(void);
 void posix_srp_panic(const char * const);
-//void posix_srp_timer_start(void);
-//void posix_srp_timer_set(const env_time_t *);
-//env_time_t posix_srp_timer_get(void);
-//env_time_t posix_srp_timestamp(void);
 void posix_srp_protect(int);
-int posix_srp_isprotected(void);
 void posix_srp_idle(void);
+
+/* ************************************************************************** */
+
+#define ENV_SRP 1
 
 /* ************************************************************************** */
 
@@ -86,21 +85,6 @@ void posix_srp_idle(void);
 
 #define ENV_TIMESTAMP() \
 	posix_srp_timestamp()
-
-/* ************************************************************************** */
-
-#define ENV_TIME_ADD(v0, v1) \
-	posix_srp_time_add(&v0, &v1)
-
-/* ************************************************************************** */
-
-#define ENV_TIME_LE(v0, v1) \
-	(((v0).tv_sec <= (v1).tv_sec) && ((v0).tv_nsec <= (v1).tv_nsec))
-
-/* ************************************************************************** */
-
-#define ENV_TIME_LT(v0, v1) \
-	(((v0).tv_sec < (v1).tv_sec) || (((v0).tv_sec == (v1).tv_sec) && ((v0).tv_nsec < (v1).tv_nsec)))
 
 /* ************************************************************************** */
 
@@ -202,25 +186,25 @@ static inline env_time_t posix_srp_timestamp(void)
 }
 
 /* ************************************************************************** */
-
-static inline env_time_t posix_srp_time_add(
-		env_time_t *v0,
-		env_time_t *v1
-		)
+/**
+ * \brief POSIX get the timestamp.
+ *
+ * \return The timestamp of the most recent interrupt.
+ */
+static inline env_time_t posix_timestamp(void)
 {
-	env_time_t tmp;
-	if ((v0->tv_nsec + v1->tv_nsec) > 1000000000UL) {
-		tmp.tv_sec = v0->tv_sec + v1->tv_sec + 1;
-		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec - 1000000000UL;
-	} else {
-		tmp.tv_sec = v0->tv_sec + v1->tv_sec;
-		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec;
-	}
-	return tmp;
+	extern env_time_t posix_timer_timestamp;
+	return posix_timer_timestamp;
 }
 
 /* ************************************************************************** */
 
+/**
+ * \brief POSIX seconds conversion function.
+ *
+ * \param seconds The number of seconds.
+ * \return The env_time_t representing the number of seconds specified.
+ */
 static inline env_time_t posix_srp_sec(unsigned long seconds)
 {
 	env_time_t tmp = {.tv_sec = seconds, .tv_nsec = 0};
@@ -229,30 +213,42 @@ static inline env_time_t posix_srp_sec(unsigned long seconds)
 
 /* ************************************************************************** */
 
-static inline env_time_t posix_srp_msec(unsigned long useconds)
+/**
+ * \brief POSIX SRP milli-seconds conversion function.
+ *
+ * \param nseconds The number of milli-seconds.
+ * \return The env_time_t representing the number of milli-seconds specified.
+ */
+static inline env_time_t posix_srp_msec(unsigned long mseconds)
 {
 	env_time_t tmp;
-	if (useconds >= 1000UL) {
-		tmp.tv_sec = useconds / 1000UL;
-		tmp.tv_nsec = useconds % 1000UL;
+	if (mseconds >= 1000UL) {
+		tmp.tv_sec = mseconds / 1000UL;
+		tmp.tv_nsec = (mseconds % 1000UL) * 1000UL;
 	} else {
 		tmp.tv_sec = 0;
-		tmp.tv_nsec = useconds;
+		tmp.tv_nsec = mseconds * 1000000UL;
 	}
 	return tmp;
 }
 
 /* ************************************************************************** */
 
-static inline env_time_t posix_srp_usec(unsigned long nseconds)
+/**
+ * \brief POSIX SRP micro-seconds conversion function.
+ *
+ * \param useconds The number of micro-seconds.
+ * \return The env_time_t representing the number of micro-seconds specified.
+ */
+static inline env_time_t posix_srp_usec(unsigned long useconds)
 {
 	env_time_t tmp;
-	if (nseconds >= 1000000UL) {
-		tmp.tv_sec = nseconds / 1000000UL;
-		tmp.tv_nsec = nseconds % 1000000UL;
+	if (useconds >= 1000000UL) {
+		tmp.tv_sec = useconds / 1000000UL;
+		tmp.tv_nsec = (useconds % 1000000UL) * 1000UL;
 	} else {
 		tmp.tv_sec = 0;
-		tmp.tv_nsec = nseconds;
+		tmp.tv_nsec = useconds;
 	}
 	return tmp;
 }

@@ -39,6 +39,8 @@
 /* POSIX/UNIX headers. */
 #include <pthread.h>
 
+/* ************************************************************************** */
+
 /**
  * \brief The internal context of a posix thread.
  */
@@ -70,24 +72,100 @@ typedef struct posix_context_t
 	void (*function)(void);
 } posix_context_t;
 
+/* ************************************************************************** */
+
 /**
  * \brief Typedef so that tinyTimber knows what to use as context.
  */
 typedef struct posix_context_t env_context_t;
 
-/**
- * \brief Typedef so that tinyTimber knows that time is.
- */
-typedef struct timespec env_time_t;
+/* ************************************************************************** */
 
 /**
  * \brief Typedef so that tinyTimber knows what a result is.
  */
 typedef uintptr_t env_result_t;
 
+/* ************************************************************************** */
+
 /**
  * \brief POSIX interrupt handler.
  */
 typedef void (*posix_ext_interrupt_handler_t)(int);
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX Uses special env_time_t type.
+ *
+ * struct timespec is used for time instead of the standard unsigned long.
+ */
+#define ENV_TIME_T 1
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX env_time_t specific type, not standard.
+ */
+typedef struct timespec env_time_t;
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time less than macro.
+ */
+#define ENV_TIME_LT(v0, v1) \
+	(\
+	 ((v0).tv_sec < (v1).tv_sec) ||\
+	 (((v0).tv_sec == (v1).tv_sec) && ((v0).tv_nsec < (v1).tv_nsec))\
+	 )
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time less than or equal to macro.
+ */
+#define ENV_TIME_LE(v0, v1) \
+	(\
+	 ((v0).tv_sec <= (v1).tv_sec) &&\
+	 ((v0).tv_nsec <= (v1).tv_nsec)\
+	 )
+
+/* ************************************************************************** */
+
+/**
+ * \brief Environments time add macro.
+ */
+#define ENV_TIME_ADD(v0, v1) \
+	posix_time_add(&v0, &v1)
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX env_time_t addition function.
+ *
+ * Non-standard addition of the time types, should be inlined and/or eliminated
+ * whenever you compile your code since it's static inline. Not always true but
+ * at least sort of true for GCC (-O1+).
+ * 
+ * \param v0 Frist value.
+ * \param v1 Second value.
+ * \return v0 + v1 with some special checks for overflow.
+ */
+static inline env_time_t posix_time_add(
+		env_time_t *v0,
+		env_time_t *v1
+		)
+{
+	env_time_t tmp;
+	if ((v0->tv_nsec + v1->tv_nsec) > 1000000000UL) {
+		tmp.tv_sec = v0->tv_sec + v1->tv_sec + 1;
+		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec - 1000000000UL;
+	} else {
+		tmp.tv_sec = v0->tv_sec + v1->tv_sec;
+		tmp.tv_nsec = v0->tv_nsec + v1->tv_nsec;
+	}
+	return tmp;
+}
 
 #endif
