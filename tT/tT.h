@@ -54,17 +54,7 @@ typedef struct tt_thread_t tt_thread_t;
  */
 typedef struct tt_object_t
 {
-#if ! defined TT_SRP
-	/**
-	 * \brief The thread that owns this object.
-	 */
-	tt_thread_t *owned_by;
-
-	/**
-	 * \brief The thread that wants this object.
-	 */
-	tt_thread_t *wanted_by;
-#else
+#if defined TT_SRP
 	/**
 	 * \brief The object resource description.
 	 */
@@ -79,6 +69,16 @@ typedef struct tt_object_t
 		 */
 		env_resource_t req;
 	} resource;
+#else
+	/**
+	 * \brief The thread that owns this object.
+	 */
+	tt_thread_t *owned_by;
+
+	/**
+	 * \brief The thread that wants this object.
+	 */
+	tt_thread_t *wanted_by;
 #endif
 } tt_object_t;
 
@@ -87,10 +87,10 @@ typedef struct tt_object_t
 /**
  * \brief tinyTimber object "constructor".
  */
-#if ! defined TT_SRP
-#	define tt_object() {NULL, NULL}
-#else
+#if defined TT_SRP
 #	define tt_object(id, req) {{(1<<(id)), req}}
+#else
+#	define tt_object() {NULL, NULL}
 #endif
 
 /* ************************************************************************** */
