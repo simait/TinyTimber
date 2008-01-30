@@ -22,9 +22,8 @@ endif
 ################################################################################
 
 CC		:= m32c-elf-gcc
-CFLAGS	:= -DENV_M16C=1 -mmcu=m16c -O2 -Wall -nostartfiles\
-		   -I$(ENV_ROOT) $(CFLAGS)
-LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/m16c.x
+CFLAGS	:= -DENV_M16C=1 -mcpu=m16c -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/m16c.x -nostartfiles -mcpu=m16c
 
 ################################################################################
 # Setup the rules for building the required object files from the source.

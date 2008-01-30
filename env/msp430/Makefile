@@ -24,6 +24,7 @@ endif
 CC		:= msp430-gcc
 CFLAGS	:= -DENV_MSP430=1 -mmcu=msp430x1611 -O2 -Wall -mendup-at=main\
 			   -mno-stack-init -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -mmcu=msp430x1611
 
 ################################################################################
 # Setup the rules for building the required object files from the source.

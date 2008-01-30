@@ -22,16 +22,18 @@ endif
 ################################################################################
 
 CC		:= arm-elf-gcc
-CFLAGS	:= -DENV_ARM7=1 -O2 -Wall -nostartfiles -mthumb-interwork\
+ASFLAGS	:= -mthumb-interwork
+CFLAGS	:= -DENV_ARM7=1 -O2 -Wall -mthumb-interwork\
 			   -I$(ENV_ROOT) -mcpu=arm7tdmi $(CFLAGS)
-LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/at91sam7x256.x $(LDFLAGS)
+LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/at91sam7x256.x $(LDFLAGS)\
+		   -mthumb-interwork -nostartfiles -mcpu=arm7tdmi
 
 ################################################################################
 # Setup the rules for building the required object files from the source.
 ################################################################################
 
 $(BUILD_ROOT)/crt.o: $(ENV_ROOT)/$(ENV)/crt.S
-	$(CC) $< -c -o $@
+	$(CC) $(ASFLAGS) $< -c -o $@
 
 $(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -45,4 +47,4 @@ $(BUILD_ROOT)/sys_call.o: $(ENV_ROOT)/$(ENV)/sys_call.c
 
 ENV_OBJECTS := $(BUILD_ROOT)/crt.o\
 			   $(BUILD_ROOT)/env.o\
-			   $(BUILD_ROOT)/sys_call.c
+			   $(BUILD_ROOT)/sys_call.o
