@@ -57,6 +57,13 @@
 #	include <objects_srp.h>
 #endif
 
+/*
+ * Just so that the user is aware that he gone did something stupid.
+ */
+#if ! defined ENV_SRP
+#	error Compiling SRP TinyTimber against regular environment.
+#endif
+
 /**
  * \brief TinyTimber no argument argument.
  *
