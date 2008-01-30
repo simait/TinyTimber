@@ -295,7 +295,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
 	/* Find where to place the message. */
 	while (
 			tmp &&
-			ULONG_LE(tmp->deadline, msg->deadline)
+			ENV_TIME_LE(tmp->deadline, msg->deadline)
 		  ) {
 		/* Next item in the list. */
 		prev = tmp;
@@ -327,7 +327,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 	/* Find where to place the message. */
 	while (
 			tmp &&
-			(ULONG_LE(tmp->baseline, msg->baseline))
+			(ENV_TIME_LE(tmp->baseline, msg->baseline))
 		  ) {
 		/* Next item in the list. */
 		prev = tmp;
@@ -420,7 +420,7 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		 * the deadline of the next message.
 		 */
 		if (
-			ULONG_LE(
+			ENV_TIME_LE(
 				CURRENT()->next->msg->deadline,
 				messages.active->deadline
 				)
@@ -615,7 +615,7 @@ ENV_CODE_FAST void tt_schedule(void)
 	 * of the last activated thread(may not be CURRENT()).
 	 */
 	if (
-		ULONG_LE(
+		ENV_TIME_LE(
 			threads.active->msg->deadline,
 			messages.active->deadline
 			)
@@ -671,7 +671,7 @@ int ENV_CODE_FAST tt_expired(env_time_t now)
 	 */
 	while (
 			messages.inactive &&
-			ULONG_LE(messages.inactive->baseline, now)
+			ENV_TIME_LE(messages.inactive->baseline, now)
 			) {
 		DEQUEUE(messages.inactive, tmp);
 		enqueue_by_deadline(&messages.active, tmp);
@@ -891,12 +891,12 @@ ENV_CODE_FAST void tt_action(
 	 * 	Fully implement the new time semantics, with inherrited
 	 * 	deadlines/baselines.
 	 */
-	msg->baseline = base + bl;
-	if (ULONG_LT(msg->baseline, ENV_TIMER_GET())) {
+	msg->baseline = ENV_TIME_ADD(base, bl);
+	if (ENV_TIME_LT(msg->baseline, ENV_TIMER_GET())) {
 		msg->baseline = ENV_TIMER_GET();
 	}
 
-	msg->deadline = msg->baseline + dl;
+	msg->deadline = ENV_TIME_ADD(msg->baseline, dl);
 	msg->to = to;
 	msg->method = method;
 
@@ -911,7 +911,7 @@ ENV_CODE_FAST void tt_action(
 	 * If baseline expired already then we should place the message in
 	 * the active list, otherwise the inactive list.
 	 */
-	if (ULONG_LE(msg->baseline, ENV_TIMER_GET())) {
+	if (ENV_TIME_LE(msg->baseline, ENV_TIMER_GET())) {
 		enqueue_by_deadline(&messages.active, msg);
 	} else {
 		enqueue_by_baseline(&messages.inactive, msg);
