@@ -1,35 +1,38 @@
 ################################################################################
-# Make sure the ROOT variable is set as it defines where to fing the
-# environment.
+# Check the required variables, such as BUILD_ROOT, TT_ROOT, and ENV_ROOT.
 ################################################################################
+
+ifndef BUILD_ROOT
+$(error Variable BUILD_ROOT was not defined.)
+endif
 
 ifndef ENV_ROOT
 $(error Variable ENV_ROOT was not defined.)
 endif
 
 ################################################################################
-# Set the CC so that we may build the system, also set the correct ENV_MCU
-# flag for the compiler.
+# Sanity check since and SRP environment is quite different.
 ################################################################################
-
-# Compiler, use gcc parachute.
-CC				= avr-gcc
-
-# ENV_MCU, we need gcc specific flag, not always the same :/
-ifndef ENV_MCU
-$(error Variable ENV_MCU was not defined.)
+ifdef SRP
+$(error Environment does not support SRP.)
 endif
-ENV_MCU				:= -mmcu=$(ENV_MCU)
 
 ################################################################################
-# Setup all the ENV_* variables, ENV_CFLAGS we allow the user to
-# override so check if it's defined.
+# Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
 
-ENV_DEF 		= -DENV_AVR=1
-ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/env.c
+CC		:= avr-gcc
+CFLAGS	:= -DENV_AVR5=1 -mmcu=avr5 -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
 
-ENV_INC			= -I$(ENV_ROOT)
-ifndef ENV_CFLAGS
-ENV_CFLAGS		= -O2 -Wall -g
-endif
+################################################################################
+# Setup the rules for building the required object files from the source.
+################################################################################
+
+$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+################################################################################
+# Setup the required objects for the enviroment sources.
+################################################################################
+
+ENV_OBJECTS := $(BUILD_ROOT)/env.o

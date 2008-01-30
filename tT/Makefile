@@ -6,39 +6,42 @@ ifndef BUILD_ROOT
 $(error Variable BUILD_ROOT was not defined.)
 endif
 
-ifndef ENV_ROOT
-$(error Variable ENV_ROOT was not defined.)
-endif
-
-################################################################################
-# Sanity check since and SRP environment is quite different.
-################################################################################
-ifdef SRP
-$(error Environment does not support SRP.)
+ifndef TT_ROOT
+$(error Variable TT_ROOT was not defined.)
 endif
 
 ################################################################################
 # Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
 
-CC		:= m32c-elf-gcc
-CFLAGS	:= -DENV_M16C=1 -mmcu=m16c -O2 -Wall -nostartfiles\
-		   -I$(ENV_ROOT) $(CFLAGS)
-LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/m16c.x
+ifdef SRP
+CFLAGS	:= -DTT_SRP=1 -I$(TT_ROOT) $(CFLAGS)
+else
+CFLAGS	:= -I$(TT_ROOT) $(CFLAGS)
+endif
 
 ################################################################################
 # Setup the rules for building the required object files from the source.
 ################################################################################
 
-$(BUILD_ROOT)/crt.o: $(ENV_ROOT)/$(ENV)/crt.S
-	$(CC) $< -c -o $@
 
-$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
+ifdef SRP
+$(BUILD_ROOT)/kernel_srp.o: $(TT_ROOT)/kernel_srp.c
 	$(CC) $(CFLAGS) $< -c -o $@
+$(BUILD_ROOT)/objects_srp.o: $(TT_ROOT)/objects_srp.c
+	$(CC) $(CFLAGS) $< -c -o $@
+else
+$(BUILD_ROOT)/kernel.o: $(TT_ROOT)/kernel.c
+	$(CC) $(CFLAGS) $< -c -o $@
+endif
 
 ################################################################################
-# Setup the required objects for the enviroment sources.
+# Setup the required objects for the kernel sources.
 ################################################################################
 
-ENV_OBJECTS := $(BUILD_ROOT)/crt.o\
-			   $(BUILD_ROOT)/env.o
+ifdef SRP
+TT_OBJECTS := $(BUILD_ROOT)/kernel_srp.o\
+			  $(BUILD_ROOT)/objects_srp.o
+else
+TT_OBJECTS := $(BUILD_ROOT)/kernel.o
+endif

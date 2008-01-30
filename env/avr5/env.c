@@ -45,9 +45,9 @@
 /* ************************************************************************** */
 
 /**
- * \brief AVR stack.
+ * \brief AVR5 stack.
  */
-char avr5_stack[AVR_STACKSIZE] = {0};
+char avr5_stack[AVR5_STACKSIZE] = {0};
 
 /* ************************************************************************** */
 
@@ -56,40 +56,40 @@ char avr5_stack[AVR_STACKSIZE] = {0};
 /**
  * \brief Starting time for the timer, used for testing mainly.
  */
-#define AVR_TIME_START	0x70000000
+#define AVR5_TIME_START	0x70000000
 
 /* ************************************************************************** */
 
 /**
  * \brief The offset of the first free stack byte.
  */
-size_t avr5_stack_offset = AVR_STACKSIZE-ENV_STACKSIZE_IDLE;
+size_t avr5_stack_offset = AVR5_STACKSIZE-ENV_STACKSIZE_IDLE;
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR base time.
+ * \brief AVR5 base time.
  */
-env_time_t avr5_timer_base = AVR_TIME_START;
+env_time_t avr5_timer_base = AVR5_TIME_START;
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR next interrupt time.
+ * \brief AVR5 next interrupt time.
  */
 env_time_t avr5_timer_next = 0;
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR timestamp.
+ * \brief AVR5 timestamp.
  */
-env_time_t avr5_timer_timestamp = AVR_TIME_START;
+env_time_t avr5_timer_timestamp = AVR5_TIME_START;
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR timer active flag.
+ * \brief AVR5 timer active flag.
  */
 char avr5_timer_active = 0;
 
@@ -141,7 +141,7 @@ __attribute__((naked)) void avr5_normal_return(void)
 /* ************************************************************************** */
 
 /**
- * \brief AVR init function.
+ * \brief AVR5 init function.
  *
  * Sets up the RS-232 and timer.
  */
@@ -170,7 +170,7 @@ void avr5_init(void)
 /* ************************************************************************** */
 
 /**
- * \brief AVR print function.
+ * \brief AVR5 print function.
  *
  * Simply prints a string to the first RS-232 port.
  *
@@ -192,7 +192,7 @@ void avr5_print(const char *str)
 /* ************************************************************************** */
 
 /**
- * \brief AVR panic function.
+ * \brief AVR5 panic function.
  * 
  * Will print the string and power down the unit.
  *
@@ -213,7 +213,7 @@ void avr5_panic(const char *str)
 /* ************************************************************************** */
 
 /**
- * \brief AVR context init function.
+ * \brief AVR5 context init function.
  *
  * Will initialize a non-idle context with the given function.
  *
@@ -237,7 +237,7 @@ void avr5_context_init(
 	/* Setup the magic cookie. */
 	context->sp = &avr5_stack[avr5_stack_offset-1];
 	context->cookie = (void *)&avr5_stack[avr5_stack_offset-stacksize];
-	*context->cookie = AVR_CONTEXT_COOKIE;
+	*context->cookie = AVR5_CONTEXT_COOKIE;
 
 	/* Setup the sp and return path. */
 	*context->sp-- = (unsigned char)(unsigned short)function & 0xff;
@@ -252,7 +252,7 @@ void avr5_context_init(
 /* ************************************************************************** */
 
 /**
- * \brief AVR context cookie panic.
+ * \brief AVR5 context cookie panic.
  *
  * Used in the context_(save|restore) macros.
  */
@@ -264,14 +264,14 @@ void avr5_context_cookie_panic(void)
 /* ************************************************************************** */
 
 /**
- * \brief AVR context dispatch function.
+ * \brief AVR5 context dispatch function.
  *
  * Should save the current context and restore the new context.
  */
 __attribute__((naked)) void avr5_context_dispatch(avr5_context_t *context)
 {
 	/* Save current context. */
-	AVR_CONTEXT_SAVE(avr5_normal_return);
+	AVR5_CONTEXT_SAVE(avr5_normal_return);
 
 	/* 
 	 * Change the context with inline asm since this is the only thing
@@ -286,28 +286,28 @@ __attribute__((naked)) void avr5_context_dispatch(avr5_context_t *context)
 		);
 
 	/* Restore new context. */
-	AVR_CONTEXT_RESTORE();
+	AVR5_CONTEXT_RESTORE();
 }
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR idle function.
+ * \brief AVR5 idle function.
  *
  * Will place the environment in an idle state.
  */
 void avr5_idle(void)
 {
 	/* Check for idle stack overflow and set the context cookie.*/
-	if (SP < (unsigned short)&avr5_stack[AVR_STACKSIZE-ENV_STACKSIZE_IDLE])
+	if (SP < (unsigned short)&avr5_stack[AVR5_STACKSIZE-ENV_STACKSIZE_IDLE])
 		avr5_panic("avr5_idle(): Idle stack overflow during init.\n");
 
 	/* Reset the sp to the top of the stack, we don't ever plan to return.  */
-	SP = (unsigned short)&avr5_stack[AVR_STACKSIZE-1];
+	SP = (unsigned short)&avr5_stack[AVR5_STACKSIZE-1];
 	/* TODO: Fix the Y register as frame pointer... */
 
-	tt_current->cookie = (void *)&avr5_stack[AVR_STACKSIZE-ENV_STACKSIZE_IDLE];
-	*tt_current->cookie = AVR_CONTEXT_COOKIE;
+	tt_current->cookie = (void *)&avr5_stack[AVR5_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->cookie = AVR5_CONTEXT_COOKIE;
 
 	avr5_print("Entering idle-mode\n");
 
@@ -339,7 +339,7 @@ void avr5_idle(void)
 /* ************************************************************************** */
 
 /**
- * \brief AVR epoch schedule function.
+ * \brief AVR5 epoch schedule function.
  *
  * Will take care of any interrupt that should be generated during this
  * epoch.
@@ -380,7 +380,7 @@ static void avr5_timer_epoch_schedule(void)
 /* ************************************************************************** */
 
 /**
- * \brief AVR timer set function.
+ * \brief AVR5 timer set function.
  *
  * Will set the new next time for the environment and also schedule any
  * interrupt with epoch_schedule().
@@ -397,22 +397,22 @@ void avr5_timer_set(env_time_t next)
 /* ************************************************************************** */
 
 /**
- * \brief AVR schedule function.
+ * \brief AVR5 schedule function.
  *
  * This function ensures that the context is saved before calling
  * tt_schedule().
  */
 __attribute__((naked)) void avr5_schedule(void)
 {
-	AVR_CONTEXT_SAVE(avr5_interrupt_return);
+	AVR5_CONTEXT_SAVE(avr5_interrupt_return);
 	tt_schedule();
-	AVR_CONTEXT_RESTORE();
+	AVR5_CONTEXT_RESTORE();
 }
 
 /* ************************************************************************** */
 
 /**
- * \brief AVR overflow ISR.
+ * \brief AVR5 overflow ISR.
  *
  * Will add ENV_TIMER_COUNT to the avr5_timer_base value.
  */
@@ -425,7 +425,7 @@ ISR(TIMER1_OVF_vect)
 /* ************************************************************************** */
 
 /**
- * \brief AVR ouput compare ISR.
+ * \brief AVR5 ouput compare ISR.
  *
  * This is used to generate any interrupt/scheduling to the tinyTimber kernel.
  */

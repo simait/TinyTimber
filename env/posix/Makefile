@@ -11,12 +11,19 @@ $(error Variable ENV_ROOT was not defined.)
 endif
 
 ################################################################################
+# Sanity check since and SRP environment is quite different.
+################################################################################
+ifdef SRP
+$(error Environment does not support SRP.)
+endif
+
+################################################################################
 # Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
 
-CC			:= gcc
-CFLAGS		:= -DENV_POSIX=1 -I$(ENV_ROOT) $(CFLAGS)
-LDFLAGS		:= -lpthread -lrt $(LDFLAGS)
+CC		:= gcc
+CFLAGS	:= -DENV_POSIX=1 -Wall -O2 -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -lpthread -lrt $(LDFLAGS)
 
 ################################################################################
 # Setup the rules for building the required object files from the source.

@@ -28,8 +28,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ENV_AVR_ENV_H_
-#define ENV_AVR_ENV_H_
+#ifndef ENV_AVR5_ENV_H_
+#define ENV_AVR5_ENV_H_
 
 #include <string.h>
 
@@ -135,7 +135,7 @@ void avr5_idle(void);
 /**
  * \brief AVR5 stack size(total).
  */
-#define AVR_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
+#define AVR5_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
 
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ void avr5_idle(void);
 /**
  * \brief AVR5 context cookie.
  */
-#define AVR_CONTEXT_COOKIE 0x55AA
+#define AVR5_CONTEXT_COOKIE 0x55AA
 
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ void avr5_idle(void);
  *
  * Saves the current context.
  */
-#define AVR_CONTEXT_SAVE(return_addr) \
+#define AVR5_CONTEXT_SAVE(return_addr) \
 	__asm__ __volatile__ (\
 		/* First save some storage for the pseudo return.  */\
 		"push	r0\n"\
@@ -239,8 +239,8 @@ void avr5_idle(void);
 			"I" (_SFR_IO_ADDR(SREG)),\
 			"I" (_SFR_IO_ADDR(SPL)),\
 			"I" (_SFR_IO_ADDR(SPH)),\
-			"M" (AVR_CONTEXT_COOKIE&0xff),\
-			"M" ((AVR_CONTEXT_COOKIE>>8)&0xff),\
+			"M" (AVR5_CONTEXT_COOKIE&0xff),\
+			"M" ((AVR5_CONTEXT_COOKIE>>8)&0xff),\
 			"i" (return_addr)\
 	)
 
@@ -251,7 +251,7 @@ void avr5_idle(void);
  *
  * Should restore the current context.
  */
-#define AVR_CONTEXT_RESTORE() \
+#define AVR5_CONTEXT_RESTORE() \
 	__asm__ __volatile__ (\
 		/* Load the new stack pointer. */\
 		"lds	r30, tt_current\n"\
@@ -313,8 +313,8 @@ void avr5_idle(void);
 			"I" (_SFR_IO_ADDR(SREG)),\
 			"I" (_SFR_IO_ADDR(SPL)),\
 			"I" (_SFR_IO_ADDR(SPH)),\
-			"M" (AVR_CONTEXT_COOKIE&0xff),\
-			"M" ((AVR_CONTEXT_COOKIE>>8)&0xff)\
+			"M" (AVR5_CONTEXT_COOKIE&0xff),\
+			"M" ((AVR5_CONTEXT_COOKIE>>8)&0xff)\
 	)
 
 /* ************************************************************************** */
@@ -403,7 +403,7 @@ void avr5_idle(void);
 __attribute__((__naked__)) int main(void)\
 {\
 	extern char avr5_stack[];\
-	SP = (unsigned short)&avr5_stack[AVR_STACKSIZE-1];\
+	SP = (unsigned short)&avr5_stack[AVR5_STACKSIZE-1];\
 	tt_init();\
 	function();\
 	tt_run();\
@@ -422,11 +422,11 @@ __attribute__((__naked__)) int main(void)\
 __attribute__((naked, signal, used)) vector(void)\
 {\
 	extern env_time_t avr5_timestamp;\
-	AVR_CONTEXT_SAVE(avr5_interrupt_return);\
+	AVR5_CONTEXT_SAVE(avr5_interrupt_return);\
 	avr5_timestamp = avr5_timer_get();\
 	function();\
 	tt_schedule();\
-	AVR_CONTEXT_RESTORE();\
+	AVR5_CONTEXT_RESTORE();\
 }
 
 /* ************************************************************************** */

@@ -1,41 +1,45 @@
 ################################################################################
-# Make sure the ROOT variable is set as it defines where to fing the
-# environment.
+# Check the required variables, such as BUILD_ROOT, TT_ROOT, and ENV_ROOT.
 ################################################################################
+
+ifndef BUILD_ROOT
+$(error Variable BUILD_ROOT was not defined.)
+endif
 
 ifndef ENV_ROOT
 $(error Variable ENV_ROOT was not defined.)
 endif
 
 ################################################################################
-# Set the CC so that we may build the system.
+# Sanity check since and SRP environment is quite different.
 ################################################################################
-
-CC				= mipsel-linux-gcc
-
-# ENV_MCU, we need gcc specific flag, not always the same :/
-ifndef ENV_MCU
-$(error Variable ENV_MCU was not defined.)
-endif
-ENV_MCU				:= -mcpu=$(ENV_MCU)
-
-################################################################################
-# Setup all the ENV_* variables, ENV_CFLAGS we allow the user to
-# override so check if it's defined.
-################################################################################
-
-ENV_DEF 		= -DENV_MIPS=1
-ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/env.c
-
-ENV_INC			= -I$(ENV_ROOT)
-ENV_LDFLAGS		= -Wl,-T$(ENV_ROOT)/$(ENV_ARCH)/mips_r3k.x
-ifndef ENV_CFLAGS
-ENV_CFLAGS		= -O2 -Wall -nostartfiles -nostdlib
+ifdef SRP
+$(error Environment does not support SRP.)
 endif
 
 ################################################################################
-# Ok, some sanity check of the TT_CFLAGS and APP_CFLAGS is needed, we must
-# use -nostdlib and -nostartfiles on both.
+# Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
-TT_CFLAGS		+= -nostartfiles -nostdlib
-APP_CFLAGS		+= -nostartfiles -nostdlib
+
+CC		:= mipsel-linux-gcc
+CFLAGS	:= -DENV_MIPS=1 -mmcu=r3k -O2 -Wall -nostartfiles -nostdlib\
+		   -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/mips_r3k.x $(LDFLAGS)
+
+################################################################################
+# Setup the rules for building the required object files from the source.
+################################################################################
+
+$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env_asm.S
+	$(CC) $< -c -o $@
+
+$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+################################################################################
+# Setup the required objects for the enviroment sources.
+################################################################################
+
+ENV_OBJECTS := $(BUILD_ROOT)/env_asm.o\
+			   $(BUILD_ROOT)/env.o
+

@@ -18,11 +18,19 @@ $(error Variable ENV was not defined.)
 endif
 
 ################################################################################
+# Almost as important as the ENV variable is the SRP variable. SRP
+# controls if the SRP or regular version of the kernel should be used. Since
+# this is not an SRP example we will not define SRP.
+################################################################################
+
+#SRP=yes
+
+################################################################################
 # The BUILD_ROOT Variable is required as all the objects will be created in
 # the $(BUILD_ROOT)/ directory.
 ################################################################################
 
-BUILD_ROOT=./obj/$(ENV)
+BUILD_ROOT=./$(ENV)
 
 ################################################################################
 # TT_ROOT specifies where the TinyTimber headers and source is located.

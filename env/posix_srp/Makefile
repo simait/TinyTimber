@@ -13,25 +13,21 @@ endif
 ################################################################################
 # Sanity check since and SRP environment is quite different.
 ################################################################################
-ifdef SRP
-$(error Environment does not support SRP.)
+ifndef SRP
+$(error SRP not defined for SRP environment)
 endif
 
 ################################################################################
 # Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
 
-CC		:= m32c-elf-gcc
-CFLAGS	:= -DENV_M16C=1 -mmcu=m16c -O2 -Wall -nostartfiles\
-		   -I$(ENV_ROOT) $(CFLAGS)
-LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/m16c.x
+CC		:= gcc
+CFLAGS	:= -DENV_POSIX_SRP=1 -Wall -O2 -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -lpthread -lrt $(LDFLAGS)
 
 ################################################################################
 # Setup the rules for building the required object files from the source.
 ################################################################################
-
-$(BUILD_ROOT)/crt.o: $(ENV_ROOT)/$(ENV)/crt.S
-	$(CC) $< -c -o $@
 
 $(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -40,5 +36,5 @@ $(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
 # Setup the required objects for the enviroment sources.
 ################################################################################
 
-ENV_OBJECTS := $(BUILD_ROOT)/crt.o\
-			   $(BUILD_ROOT)/env.o
+ENV_OBJECTS := $(BUILD_ROOT)/env.o
+

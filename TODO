@@ -4,8 +4,6 @@ NOTE:
 
 env/*:
 
-	* Create a unified build system for tinyTimber and it's examples.
-
 	* Figure out why the MSP430 environment breaks when taking overflow
 	  into account in the timer_get() function, until then we will take
 	  the long way around and just generate those extra interrupts.
@@ -14,23 +12,6 @@ env/*:
 	  kernel to leave protected mode while doing some things, such as
 	  setting up variables and copying memory.
 
-env/msp430:
-
-	-
-
-env/posix:
-
-	* Make the ticks "dynamic", this is the right way to do it... Also
-	  make the "interrupt" policy sane or at least get a policy. More
-	  extensive use of inline functions for the timers and a general
-	  rewrite of the timer code.
-
-env/avr:
-
-	* Need to look into how we should deal with the interrupts, we need to
-	  save the state of a thread so we know if we should return from an
-	  interrupt or regular user space.
-
 env/arm7:
 
 	* Figure out how to do this sligthly more portable? Or should we just live
@@ -38,8 +19,3 @@ env/arm7:
 	  "sane" solution :/
 
 	* Fix the AIC code so that nested interrupts are supported...
-
-env/m16c:
-
-	* Fix the timer service, not working atm. but compiles and task-switching
-	  is working (complete with context cookies).

@@ -1,43 +1,48 @@
 ################################################################################
-# Make sure the ROOT variable is set as it defines where to fing the
-# environment.
+# Check the required variables, such as BUILD_ROOT, TT_ROOT, and ENV_ROOT.
 ################################################################################
+
+ifndef BUILD_ROOT
+$(error Variable BUILD_ROOT was not defined.)
+endif
 
 ifndef ENV_ROOT
 $(error Variable ENV_ROOT was not defined.)
 endif
 
 ################################################################################
-# Set the CC so that we may build the system.
+# Sanity check since and SRP environment is quite different.
 ################################################################################
-
-CC				= arm-elf-gcc
-
-# ENV_MCU, we need gcc specific flag, not always the same :/
-ifndef ENV_MCU
-$(error Variable ENV_MCU was not defined.)
-endif
-ENV_MCU				:= -mcpu=$(ENV_MCU)
-
-################################################################################
-# Setup all the ENV_* variables, ENV_CFLAGS we allow the user to
-# override so check if it's defined.
-################################################################################
-
-ENV_DEF 		= -DENV_ARM7=1
-ENV_SRC			= $(ENV_ROOT)/$(ENV_ARCH)/crt.S\
-				  $(ENV_ROOT)/$(ENV_ARCH)/env.c\
-				  $(ENV_ROOT)/$(ENV_ARCH)/sys_call.c\
-
-ENV_INC			= -I$(ENV_ROOT)
-ENV_LDFLAGS		= -Wl,-T$(ENV_ROOT)/$(ENV_ARCH)/at91sam7x256.x
-ifndef ENV_CFLAGS
-ENV_CFLAGS		= -O2 -Wall -nostartfiles -mthumb-interwork
+ifdef SRP
+$(error Environment does not support SRP.)
 endif
 
 ################################################################################
-# Ok, some sanity check of the TT_CFLAGS and APP_CFLAGS is needed, we must
-# use -mthumb-interwork -nostartfiles on both.
+# Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
-TT_CFLAGS		+= -nostartfiles -mthumb-interwork
-APP_CFLAGS		+= -nostartfiles -mthumb-interwork
+
+CC		:= arm-elf-gcc
+CFLAGS	:= -DENV_ARM7=1 -O2 -Wall -nostartfiles -mthumb-interwork\
+			   -I$(ENV_ROOT) -mcpu=arm7tdmi $(CFLAGS)
+LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/at91sam7x256.x $(LDFLAGS)
+
+################################################################################
+# Setup the rules for building the required object files from the source.
+################################################################################
+
+$(BUILD_ROOT)/crt.o: $(ENV_ROOT)/$(ENV)/crt.S
+	$(CC) $< -c -o $@
+
+$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+$(BUILD_ROOT)/sys_call.o: $(ENV_ROOT)/$(ENV)/sys_call.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+################################################################################
+# Setup the required objects for the enviroment sources.
+################################################################################
+
+ENV_OBJECTS := $(BUILD_ROOT)/crt.o\
+			   $(BUILD_ROOT)/env.o\
+			   $(BUILD_ROOT)/sys_call.c
