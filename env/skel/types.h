@@ -46,14 +46,6 @@
 typedef struct env_context_t {int dummy;} env_context_t;
 
 /**
- * \brief Environment time typedef.
- *
- * Should evaluate to the type that is used to represent time within the
- * environment.
- */
-typedef int env_time_t;
-
-/**
  * \brief Environment result typdef.
  *
  * Should evaluate to the result of a synchronus function call.

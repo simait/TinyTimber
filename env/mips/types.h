@@ -62,13 +62,6 @@ typedef mips_context_t env_context_t;
 /* ************************************************************************** */
 
 /**
- * \brief Export what time is to the kernel.
- */
-typedef unsigned long env_time_t;
-
-/* ************************************************************************** */
-
-/**
  * \brief Export what a result is to the kernel.
  */
 typedef uintptr_t env_result_t;

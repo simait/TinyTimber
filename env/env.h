@@ -32,32 +32,26 @@
 #define ENV_H_
 
 #if ! defined TT_MANGLED
-#	if ! defined TT_SRP
-#		if defined ENV_POSIX
-#			include "posix/env.h"
-#		elif defined ENV_MSP430
-#			include "msp430/env.h"
-#		elif defined ENV_AVR
-#			include "avr5/env.h"
-#		elif defined ENV_PIC18
-#			include "pic18/env.h"
-#		elif defined ENV_ARM7
-#			include "arm7/env.h"
-#		elif defined ENV_MIPS
-#			include "mips/env.h"
-#		elif defined ENV_M16C
-#			include "m16c/env.h"
-#		elif defined ENV_SKEL
-#			include "skel/env.h"
-#		else
-#			error Unknown environment.
-#		endif
+#	if defined ENV_POSIX
+#		include "posix/env.h"
+#	elif defined ENV_POSIX_SRP
+#		include "posix_srp/env.h"
+#	elif defined ENV_MSP430
+#		include "msp430/env.h"
+#	elif defined ENV_AVR
+#		include "avr5/env.h"
+#	elif defined ENV_PIC18
+#		include "pic18/env.h"
+#	elif defined ENV_ARM7
+#		include "arm7/env.h"
+#	elif defined ENV_MIPS
+#		include "mips/env.h"
+#	elif defined ENV_M16C
+#		include "m16c/env.h"
+#	elif defined ENV_SKEL
+#		include "skel/env.h"
 #	else
-#		if defined ENV_POSIX
-#			include "posix_srp/env.h"
-#		else
-#			error Unknown environment.
-#		endif
+#		error Unknown environment.
 #	endif
 #endif
 
@@ -121,22 +115,6 @@
 #	error Environment did not define ENV_IDLE()
 #endif
 
-#if defined ENV_TIME_NEW
-
-#	ifndef ENV_TIME_LT
-#		error Environment did not define ENV_TIME_LT()
-#	endif
-
-#	ifndef ENV_TIME_LE
-#		error Environment did not define ENV_TIME_LE()
-#	endif
-
-#	ifndef ENV_TIME_ADD
-#		error Environment did not define ENV_TIME_ADD()
-#	endif
-
-#endif
-
 #ifndef ENV_TIMER_START
 #	error Environment did not define ENV_TIMER_START().
 #endif
@@ -170,10 +148,24 @@
 #endif
 
 /* ************************************************************************** */
-/* ***************************** SANITY (NON-SRP)**************************** */
+/* ***************************** SANITY (NON-SRP) *************************** */
 /* ************************************************************************** */
 
-#if ! defined TT_SRP
+#if defined ENV_SRP
+
+#	ifdef ENV_NUM_THREADS
+#		warning Environment defined ENV_NUM_THREADS?!?
+#	endif
+
+#	ifdef ENV_CONTEXT_INIT
+#		warning Environment defined ENV_CONTEXT_INIT?!?
+#	endif
+
+#	ifdef ENV_CONTEXT_DISPATCH
+#		warning Environment defined ENV_CONTEXT_DISPATCH?!?
+#	endif
+
+#else
 
 #	ifndef ENV_NUM_THREADS
 #		error Environment did not define ENV_NUM_THREADS.

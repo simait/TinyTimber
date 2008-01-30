@@ -50,16 +50,14 @@ typedef struct msp430_context_t
 	unsigned short *cookie;
 } msp430_context_t;
 
+/* ************************************************************************** */
 
 /**
  * \brief Export the msp430 context as env_context_t.
  */
 typedef msp430_context_t env_context_t;
 
-/**
- * \brief Export what time is to the kernel.
- */
-typedef unsigned long env_time_t;
+/* ************************************************************************** */
 
 /**
  * \brief Export what a result is to the kernel.

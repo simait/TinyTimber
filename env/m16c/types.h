@@ -47,6 +47,8 @@ typedef struct m16c_context_t {
 	unsigned short *cookie;
 } m16c_context_t;
 
+/* ************************************************************************** */
+
 /**
  * \brief M16C Environment context typedef.
  *
@@ -55,13 +57,7 @@ typedef struct m16c_context_t {
  */
 typedef m16c_context_t env_context_t;
 
-/**
- * \brief M16C Environment time typedef.
- *
- * Should evaluate to the type that is used to represent time within the
- * environment.
- */
-typedef unsigned long env_time_t;
+/* ************************************************************************** */
 
 /**
  * \brief M16C Environment result typdef.

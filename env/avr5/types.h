@@ -47,15 +47,14 @@ typedef struct avr5_context_t
 	unsigned short *cookie;
 } avr5_context_t;
 
+/* ************************************************************************** */
+
 /**
  * \brief Export of avr context as env_context_t.
  */
 typedef avr5_context_t env_context_t;
 
-/**
- * \brief The AVR time typedef.
- */
-typedef unsigned long env_time_t;
+/* ************************************************************************** */
 
 /**
  * \brief The AVR result typedef.

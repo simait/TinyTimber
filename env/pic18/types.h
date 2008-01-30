@@ -53,20 +53,21 @@ typedef struct pic18_context_t
 	unsigned short *cookie;
 } pic18_context_t;
 
+/* ************************************************************************** */
+
 /**
  * \brief Export the pic18 context as environment context.
  */
 typedef pic18_context_t env_context_t;
 
-/**
- * \brief Environment time.
- */
-typedef unsigned long env_time_t;
+/* ************************************************************************** */
 
 /**
  * \brief Environment result.
  */
 typedef unsigned long env_result_t;
+
+/* ************************************************************************** */
 
 /**
  * \brief Environment extension for interrupts.
