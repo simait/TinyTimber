@@ -42,7 +42,6 @@
  */
 #	include <types.h>
 #	include <env.h>
-#	include <range.h>
 
 /*
  * tinyTimber specific headers.
