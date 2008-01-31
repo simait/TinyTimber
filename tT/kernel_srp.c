@@ -184,8 +184,9 @@ static env_resource_t tt_resources;
 static void *memset(void *ptr, int n, size_t n)
 {
 	signed char tmp = ptr;
-	while (n--)
+	while (n--) {
 		*((signed char *)tmp++) = n;
+	}
 	return ptr;
 }
 
@@ -204,8 +205,9 @@ static void *memset(void *ptr, int n, size_t n)
 static void memcpy(void *dest, const void *src, size_t n)
 {
 	unsigned char *d = dest, *s = src;
-	while (n--)
+	while (n--) {
 		*d++ = *s++;
+	}
 	return dest;
 }
 #endif
@@ -216,8 +218,7 @@ static void memcpy(void *dest, const void *src, size_t n)
  * \brief TinyTimber dequeue/pop macro.
  */
 #define DEQUEUE(list, item) \
-do\
-{\
+do {\
 	item = list;\
 	list = list->next;\
 } while (0)
@@ -228,8 +229,7 @@ do\
  * \brief TinyTimber enqueue/push macro.
  */
 #define ENQUEUE(list, item) \
-do\
-{\
+do {\
 	item->next = list;\
 	list = item;\
 } while (0)
@@ -281,7 +281,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 	/* Find where to place the message. */
 	while (
 			tmp &&
-			(ENV_TIME_LE(tmp->baseline, msg->baseline))
+			ENV_TIME_LE(tmp->baseline, msg->baseline)
 		  ) {
 		prev = tmp;
 		tmp = tmp->next;
@@ -637,8 +637,7 @@ ENV_CODE_FAST void tt_action(
 	 */
 	if (ENV_TIME_LE(msg->baseline, ENV_TIMER_GET())) {
 		enqueue_by_deadline(&messages.active, msg);
-	}
-	else {
+	} else {
 		enqueue_by_baseline(&messages.inactive, msg);
 		if (messages.inactive == msg) {
 			ENV_TIMER_SET(msg->baseline);

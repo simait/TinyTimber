@@ -44,7 +44,7 @@
 #	include <env.h>
 
 /*
- * tinyTimber specific headers.
+ * TinyTimber specific headers.
  */
 #	include <kernel.h>
 #endif
@@ -57,7 +57,7 @@
 #endif
 
 /**
- * \brief tinyTimber no argument argument.
+ * \brief TinyTimber no argument argument.
  *
  * Just export a single char that will be copied when the user request
  * that no arguments should be passed.
@@ -67,7 +67,7 @@ char tt_args_none = 42;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber message structure type.
+ * \brief TinyTimber message structure type.
  */
 struct tt_message_t
 {
@@ -104,7 +104,7 @@ struct tt_message_t
 	tt_flags_t flags;
 
 	/**
-	 * \brief tinyTimber argument buffer.
+	 * \brief TinyTimber argument buffer.
 	 */
 	union
 	{
@@ -170,28 +170,28 @@ static void memcpy(void *dest, const void *src, size_t n)
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber idle context.
+ * \brief TinyTimber idle context.
  */
 static env_context_t thread_idle;
 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber current thread.
+ * \brief TinyTimber current thread.
  */
 env_context_t *tt_current;
 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber thread pool.
+ * \brief TinyTimber thread pool.
  */
 static tt_thread_t thread_pool[ENV_NUM_THREADS];
 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber thread housekeeper structure.
+ * \brief TinyTimber thread housekeeper structure.
  */
 static struct
 {
@@ -214,7 +214,7 @@ static struct
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber message pool.
+ * \brief TinyTimber message pool.
  */
 #ifdef ENV_PIC18
 #	pragma idata message_pool
@@ -227,7 +227,7 @@ static tt_message_t message_pool[TT_NUM_MESSAGES];
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber messages housekeeper structure.
+ * \brief TinyTimber messages housekeeper structure.
  */
 static struct
 {
@@ -250,18 +250,17 @@ static struct
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber helper macro to access the current thread.
+ * \brief TinyTimber helper macro to access the current thread.
  */
 #define CURRENT() ((tt_thread_t*)tt_current)
 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber dequeue/pop macro.
+ * \brief TinyTimber dequeue/pop macro.
  */
 #define DEQUEUE(list, item) \
-do\
-{\
+do {\
 	item = list;\
 	list = list->next;\
 } while (0)
@@ -269,11 +268,10 @@ do\
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber enqueue/push macro.
+ * \brief TinyTimber enqueue/push macro.
  */
 #define ENQUEUE(list, item) \
-do\
-{\
+do {\
 	item->next = list;\
 	list = item;\
 } while (0)
@@ -281,7 +279,7 @@ do\
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber enqueue by deadline function.
+ * \brief TinyTimber enqueue by deadline function.
  *
  * \param list List to enqueue into.
  * \param msg Message to qneue.
@@ -313,7 +311,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber enqueue by baseline function.
+ * \brief TinyTimber enqueue by baseline function.
  *
  * \param list List to enqueue into.
  * \param msg Message to enqueue.
@@ -326,7 +324,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 	/* Find where to place the message. */
 	while (
 			tmp &&
-			(ENV_TIME_LE(tmp->baseline, msg->baseline))
+			ENV_TIME_LE(tmp->baseline, msg->baseline)
 		  ) {
 		/* Next item in the list. */
 		prev = tmp;
@@ -345,7 +343,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber run thread function.
+ * \brief TinyTimber run thread function.
  *
  * This is the entry point for all environment threads.
  */
@@ -483,7 +481,7 @@ yield:
 /* ************************************************************************** */
 
 /**
- * \brief The tinyTimber init function.
+ * \brief The TinyTimber init function.
  *
  * Should initialize the kernel to a state where async messages can be sent.
  * No timer should be running.
@@ -549,7 +547,7 @@ void tt_init(void)
 /* ************************************************************************** */
 
 /**
- * \brief The tinyTimber run function.
+ * \brief The TinyTimber run function.
  *
  * Will, if needed, set the timer so that the first timer interrupt will
  * be generated correctly (if messages end up directly in active list
@@ -583,7 +581,7 @@ void tt_run(void)
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber schedule function.
+ * \brief TinyTimber schedule function.
  */
 ENV_CODE_FAST void tt_schedule(void)
 {
@@ -650,7 +648,7 @@ schedule_new:
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber expired function.
+ * \brief TinyTimber expired function.
  *
  * Function will place any expired messages in the active list. It is up
  * to the callee to run tt_schedule().
@@ -690,7 +688,7 @@ int ENV_CODE_FAST tt_expired(env_time_t now)
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber request function.
+ * \brief TinyTimber request function.
  *
  * Perform a synchronus call upon an object, this ensures the state
  * integrity of the object. Usually called using the TT_SYNC() macro, or
@@ -799,7 +797,7 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber action function.
+ * \brief TinyTimber action function.
  *
  * Will schedule a message with a given baseline and deadline, if the
  * baseline has expired the message is placed directly into the active
@@ -925,7 +923,7 @@ ENV_CODE_FAST void tt_action(
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber tt_cancel function.
+ * \brief TinyTimber tt_cancel function.
  *
  * Will cancel a message depending on the given receipt (if it's still
  * valid).
