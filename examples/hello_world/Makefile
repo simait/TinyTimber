@@ -8,7 +8,7 @@
 #ENV=m16c
 #ENV=mips
 #ENV=msp430
-#ENV=pic18
+#ENV=msp430_srp
 #ENV=posix
 #ENV=posix_srp
 #ENV=skel

@@ -168,7 +168,7 @@ int main(void)\
 	function();\
 	tt_run();\
 	return 0;\
-} char dummy /* Force semi-colon. */
+} extern char dummy /* Force semi-colon. */
 
 /* ************************************************************************** */
 

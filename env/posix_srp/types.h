@@ -46,13 +46,6 @@ typedef uintptr_t env_result_t;
 /* ************************************************************************** */
 
 /**
- * \brief POSIX Typedef for TinyTimber resource mask/type.
- */
-typedef unsigned long env_resource_t;
-
-/* ************************************************************************** */
-
-/**
  * \brief POSIX interrupt handler.
  */
 typedef void (*posix_ext_interrupt_handler_t)(int);

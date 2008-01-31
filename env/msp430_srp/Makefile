@@ -6,31 +6,35 @@ ifndef BUILD_ROOT
 $(error Variable BUILD_ROOT was not defined.)
 endif
 
-ifndef APP_ROOT
-$(error Variable APP_ROOT was not defined.)
+ifndef ENV_ROOT
+$(error Variable ENV_ROOT was not defined.)
+endif
+
+################################################################################
+# Sanity check since and SRP environment is quite different.
+################################################################################
+ifndef SRP
+$(error SRP not defined for SRP environment)
 endif
 
 ################################################################################
 # Setup any build related flags, such as CC, AS, LDFLAGS, CFLAGS etc.
 ################################################################################
 
-CFLAGS	:= -I$(APP_ROOT) $(CFLAGS) -g -O2 -DTT_NUM_MESSAGES=20
+CC		:= msp430-gcc
+CFLAGS	:= -DENV_MSP430_SRP=1 -mmcu=msp430x1611 -O2 -Wall -mendup-at=main\
+			   -I$(ENV_ROOT) $(CFLAGS)
+LDFLAGS	:= -mmcu=msp430x1611
 
 ################################################################################
 # Setup the rules for building the required object files from the source.
 ################################################################################
 
-$(BUILD_ROOT)/main.o: $(APP_ROOT)/main.c
+$(BUILD_ROOT)/env.o: $(ENV_ROOT)/$(ENV)/env.c
 	$(CC) $(CFLAGS) $< -c -o $@
 
 ################################################################################
-# Setup the required objects for the application sources.
+# Setup the required objects for the enviroment sources.
 ################################################################################
 
-APP_OBJECTS	:= $(BUILD_ROOT)/main.o
-
-################################################################################
-# Last but not the least we define the binary output of the application.
-################################################################################
-
-APP_BINARY	:= $(BUILD_ROOT)/app.elf
+ENV_OBJECTS := $(BUILD_ROOT)/env.o

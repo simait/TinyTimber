@@ -40,8 +40,8 @@
 /*
  * Environment specific eaders.
  */
-#	include <types.h>
 #	include <env.h>
+#	include <types.h>
 
 /*
  * TinyTimber specific headers.

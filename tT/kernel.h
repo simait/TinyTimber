@@ -39,6 +39,13 @@
 #	include <types.h>
 #endif
 
+/*
+ * Just so that the user is aware that he gone did something stupid.
+ */
+#if defined ENV_SRP
+#	error Compiling regular TinyTimber against SRP environment.
+#endif
+
 /* ************************************************************************** */
 
 /**

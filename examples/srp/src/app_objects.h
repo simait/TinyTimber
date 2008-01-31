@@ -13,6 +13,8 @@ enum app_objects_t
 	OBJECT_B,
 	OBJECT_C,
 	OBJECT_D,
+	RELEASE,
+	ANNOUNCE,
 	APP_OBJECT_ID_MAX /* MUST NOT BE REMOVED! */
 };
 

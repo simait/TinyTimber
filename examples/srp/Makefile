@@ -30,7 +30,7 @@ SRP=yes
 # the $(BUILD_ROOT)/ directory.
 ################################################################################
 
-BUILD_ROOT=./obj/$(ENV)
+BUILD_ROOT=./$(ENV)
 
 ################################################################################
 # TT_ROOT specifies where the TinyTimber headers and source is located.

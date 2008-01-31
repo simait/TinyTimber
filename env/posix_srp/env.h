@@ -40,6 +40,7 @@
 /* ************************************************************************** */
 
 void posix_srp_init(void);
+void posix_srp_print(const char * const);
 void posix_srp_panic(const char * const);
 void posix_srp_protect(int);
 void posix_srp_idle(void);
@@ -60,6 +61,11 @@ void posix_srp_idle(void);
 
 #define ENV_INIT() \
 	posix_srp_init()
+
+/* ************************************************************************** */
+
+#define ENV_DEBUG(msg) \
+	posix_srp_print(msg)
 
 /* ************************************************************************** */
 
@@ -98,31 +104,6 @@ void posix_srp_idle(void);
 
 /* ************************************************************************** */
 
-#define ENV_RESOURCE(id) \
-	(1<<id)
-
-/* ************************************************************************** */
-
-#define ENV_RESOURCE_AQUIRE(mask, resource) \
-	do {mask |= resource;} while (0)
-
-/* ************************************************************************** */
-
-#define ENV_RESOURCE_RELEASE(mask, resource) \
-	do {mask &= ~(resource);} while (0)
-
-/* ************************************************************************** */
-
-#define ENV_RESOURCE_AVAILABLE(mask, resource) \
-	(!((mask) & (resource)))
-
-/* ************************************************************************** */
-
-#define ENV_RESOURCE_MAX \
-	(sizeof(env_resource_t)*CHAR_BIT)
-
-/* ************************************************************************** */
-
 #define ENV_IDLE() \
 	posix_srp_idle()
 
@@ -149,7 +130,7 @@ int main(void) {\
 	function();\
 	tt_run();\
 	return 0;\
-} char dummy /* Force semi-colon at end of macro. */
+} extern char dummy /* Force semi-colon at end of macro. */
 
 /* ************************************************************************** */
 

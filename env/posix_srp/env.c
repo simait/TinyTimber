@@ -109,6 +109,13 @@ void posix_srp_init(void)
 
 /* ************************************************************************** */
 
+void posix_srp_print(const char * const msg)
+{
+	fprintf(stderr, msg);
+}
+
+/* ************************************************************************** */
+
 void posix_srp_panic(const char * const msg)
 {
 	fprintf(stderr, msg);

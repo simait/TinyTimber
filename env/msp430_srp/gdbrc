@@ -1,0 +1,3 @@
+file date08.elf
+set watchdog 0
+target remote :2000

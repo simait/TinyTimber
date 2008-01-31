@@ -38,6 +38,8 @@
 #		include "posix_srp/types.h"
 #	elif defined ENV_MSP430
 #		include "msp430/types.h"
+#	elif defined ENV_MSP430_SRP
+#		include "msp430_srp/types.h"
 #	elif defined ENV_AVR
 #		include "avr5/types.h"
 #	elif defined ENV_PIC18
@@ -59,13 +61,14 @@
 		 * default definition as an unsigned long.
 		 */
 
+#		include <limits.h>
 		typedef unsigned long env_time_t;
 
 #		define ENV_TIME_LT(v0, v1) \
-			((((signed long)(v0) - (v1))) < 0)
+			(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
 
 #		define ENV_TIME_LE(v0, v1) \
-			((((signed long)(v0) - (v1))) <= 0)
+			(ENV_TIME_LT(v0, v1) || ((v0) == (v1)))
 
 #		define ENV_TIME_ADD(v0, v1) \
 			((v0) + (v1))
@@ -84,6 +87,51 @@
 
 #		ifndef ENV_TIME_ADD
 #			error Environment did not define ENV_TIME_ADD()
+#		endif
+#	endif
+#	if defined TT_SRP
+#		if ! defined ENV_RESOURCE_T
+			/*
+			 * Resource definition was not supplied by the environment
+			 * so we supply the default definition as an unsigned long.
+			 */
+#			include <limits.h>
+			typedef unsigned long env_resource_t;
+
+#			define ENV_RESOURCE_MAX \
+				(sizeof(env_resource_t)*CHAR_BIT)
+#			define ENV_RESOURCE(id) \
+				(1<<id)
+
+#			define ENV_RESOURCE_AQUIRE(mask, resource) \
+				do {mask |= resource;} while (0)
+
+#			define ENV_RESOURCE_RELEASE(mask, resource) \
+				do {mask &= ~(resource);} while (0)
+
+#			define ENV_RESOURCE_AVAILABLE(mask, resource) \
+				(!((mask) & (resource)))
+
+#		else
+			/*
+			 * Resource definition was supplied, let's try to error check that
+			 * the required interface was supplied.
+			 */
+#			ifndef ENV_RESOURCE_MAX
+#				error Environment did not defined ENV_RESOURCE_MAX.
+#			endif
+
+#			ifndef ENV_RESOURCE_AQUIRE
+#				error Environment did not defined ENV_RESOURCE_AQUIRE().
+#			endif
+
+#			ifndef ENV_RESOURCE_RELEASE
+#				error Environment did not defined ENV_RESOURCE_RELEASE().
+#			endif
+
+#			ifndef ENV_RESOURCE_AVAILABLE
+#				error Environment did not defined ENV_RESOURCE_AVAILABLE().
+#			endif
 #		endif
 #	endif
 #endif

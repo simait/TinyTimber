@@ -38,6 +38,8 @@
 #		include "posix_srp/env.h"
 #	elif defined ENV_MSP430
 #		include "msp430/env.h"
+#	elif defined ENV_MSP430_SRP
+#		include "msp430_srp/env.h"
 #	elif defined ENVAVR5
 #		include "avr5/env.h"
 #	elif defined ENV_PIC18

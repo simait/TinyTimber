@@ -227,7 +227,7 @@ int main(void)\
 	function();\
 	tt_run();\
 	return 0;\
-} char dummy /* Force the semicolon. */
+} extern char dummy /* Force the semicolon. */
 
 /* ************************************************************************** */
 

@@ -4,6 +4,9 @@ NOTE:
 
 env/*:
 
+	* Look into the timer code on all environments, there are some edge
+	  cases that will make the code behave strangely :/
+
 	* Figure out why the MSP430 environment breaks when taking overflow
 	  into account in the timer_get() function, until then we will take
 	  the long way around and just generate those extra interrupts.
