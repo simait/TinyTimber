@@ -422,6 +422,7 @@ dispatch:
 	}
 
 	/* Perform the request, this will be the "root" of the request chain. */
+	ENV_INTERRUPT_PRIORITY_RESET();
 	ENV_PROTECT(0);
 	tt_request(tmp->to, tmp->method, tmp->arg.buf);
 	ENV_PROTECT(1);

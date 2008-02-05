@@ -50,6 +50,8 @@
 #		include "mips/types.h"
 #	elif defined ENV_M16C
 #		include "m16c/types.h"
+#	elif defined ENV_M16C_SRP
+#		include "m16c_srp/types.h"
 #	elif defined ENV_SKEL
 #		include "skel/types.h"
 #	else
