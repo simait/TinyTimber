@@ -38,6 +38,7 @@
 	.global __vector_default
 
 	.extern _main
+	.extern _vector_panic
 
 _start:
 	/* Setup processor mode, single chip mode. */
@@ -82,6 +83,7 @@ _start:
 
 /* We should probably not get here. */
 __vector_default:
+	jmp.a	_vector_panic
 	jmp.a	__vector_default
 
 /* Fixed hardware vector table. */

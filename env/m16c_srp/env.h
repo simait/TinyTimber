@@ -51,6 +51,15 @@ void m16c_timer_set(env_time_t);
 /* ************************************************************************** */
 
 /**
+ * \brief Environment SRP macro.
+ *
+ * Implies that this is an SRP environment and should be treated as such.
+ */
+#define ENV_SRP 1
+
+/* ************************************************************************** */
+
+/**
  * \brief Environment initialization.
  *
  * Should take care of initializing the environment setting up any hardware
@@ -148,7 +157,7 @@ void m16c_timer_set(env_time_t);
  *
  * The number of time units in one epoch.
  */
-#define M16C_TIMER_COUNT 0x10000
+#define M16C_TIMER_COUNT 0x10000UL
 
 /* ************************************************************************** */
 
@@ -186,7 +195,7 @@ void m16c_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_USEC(n) \
-	(((env_time_t)n*M16C_TIMER_HZ)/1000000)
+	(((env_time_t)n*M16C_TIMER_HZ)/1000000UL)
 
 /* ************************************************************************** */
 
@@ -197,7 +206,7 @@ void m16c_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_MSEC(n) \
-	(((env_time_t)n*M16C_TIMER_HZ)/1000)
+	(((env_time_t)n*M16C_TIMER_HZ)/1000UL)
 
 /* ************************************************************************** */
 
@@ -232,39 +241,50 @@ int main(void)\
 /**
  * \brief M16C Interrupt macro.
  *
- * This is an ugly, ugly hack... But it works. Do NOT, I repeat NOT, try to
- * make the compiler inline the interrupt code, you WILL f*ck up things
- * by doing this... Sooner or later.
+ * Just a simple macro for installing iunterrupts, or rather declaring a
+ * function with the correct for the given interrupt.
  */
 /** \cond */
-#define _INT_VEC(value) "__vector_" #value
-#define INT_VEC(value) _INT_VEC(value)
+#define INT_DUMMY1(id) _dummy1_vector_##id
+#define INT_DUMMY2(id) _dummy2_vector_##id
+#define INT_DUMMY1_STR(id) "__dummy1_vector_" #id
+#define INT_DUMMY2_STR(id) "__dummy2_vector_" #id
+#define INT_VEC(value) _vector_ ##value
+#define INT_VEC_STR(value) "__vector_" #value
 /** \endcond */
-#define ENV_INTERRUPT(id, function) \
-	void _##function##_dummy_(void) {\
-		asm(".global " INT_VEC(id) "\n" INT_VEC(id) ":\n");\
-		ENV_CONTEXT_SAVE();\
-		asm ("jsr.a	_" #function "\n");\
-		ENV_CONTEXT_RESTORE();\
-		asm("reit");\
-	}
+#define ENV_INTERRUPT(id) \
+void INT_DUMMY1(id) (void) \
+{\
+	asm(\
+		".global " INT_VEC_STR(id) "\n"\
+		INT_VEC_STR(id) ":\n"\
+		"fset	b\n"\
+		"popm	r0, r1\n"\
+		"fset	u\n"\
+		"pushm	r0, r1\n"\
+		"fclr	b\n"\
+		"jmp.a	" INT_DUMMY2_STR(id) "\n"\
+		);\
+}\
+__attribute__((interrupt)) void INT_DUMMY2(id) (void)
 
 /* ************************************************************************** */
 
 /**
- * \brief M16C Raw interrupt macro (extension).
+ * \brief M16C Interrupt Priority macro.
  *
- * This again as with the regular interrupt macro this is a very, _very_ ugly
- * hack to get things working when using the sort of crippled GCC compiler.
- *
- * Also, we do not install a callback function but rather decalre a special
- * name for the function so that the linker script can find it and place it
- * in the correct spot. See the TimerA0 interrupt in the environment sources
- * for an example usage.
+ * Should reset the interrupt priority level.
  */
-#define INT_VEC_RAW(value) _vector_##value
-#define ENV_EXT_INTERRUPT_RAW(id) \
-	__attribute__((interrupt)) void INT_VEC_RAW(id)(void)
+#define ENV_INTERRUPT_PRIORITY_RESET() \
+do{\
+	volatile int tmp;\
+	asm(\
+		"stc	flg, %0\n"\
+		"and.w	#0xff, %0\n"\
+		"ldc	%0, flg\n"\
+		:"=r" (tmp)\
+	   );\
+} while (0)
 
 /* ************************************************************************** */
 
@@ -278,10 +298,11 @@ int main(void)\
  * protected mode.
  */
 static inline void m16c_protect(int protect) {
-	if (protect)
+	if (protect) {
 		asm("fclr i\n");
-	else
+	} else {
 		asm("fset i\n");
+	}
 }
 
 /* ************************************************************************** */

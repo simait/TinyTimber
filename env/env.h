@@ -50,6 +50,8 @@
 #		include "mips/env.h"
 #	elif defined ENV_M16C
 #		include "m16c/env.h"
+#	elif defined ENV_M16C_SRP
+#		include "m16c_srp/env.h"
 #	elif defined ENV_SKEL
 #		include "skel/env.h"
 #	else
@@ -69,6 +71,16 @@
  */
 #ifndef ENV_INLINE
 #	define ENV_INLINE
+#endif
+
+/**
+ * \brief Environment priority reset macro.
+ *
+ * Not always required by the environment so should evaluate to a void
+ * expression if not defined.
+ */
+#ifndef ENV_INTERRUPT_PRIORITY_RESET
+#	define ENV_INTERRUPT_PRIORITY_RESET() ((void)0)
 #endif
 
 /**

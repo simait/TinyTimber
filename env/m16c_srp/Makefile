@@ -22,7 +22,7 @@ endif
 ################################################################################
 
 CC		:= m32c-elf-gcc
-CFLAGS	:= -DENV_M16C=1 -mcpu=m16c -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
+CFLAGS	:= -DENV_M16C_SRP=1 -mcpu=m16c -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
 LDFLAGS	:= -Wl,-T$(ENV_ROOT)/$(ENV)/m16c.x -nostartfiles -mcpu=m16c
 
 ################################################################################
