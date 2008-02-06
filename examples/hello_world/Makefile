@@ -8,7 +8,7 @@
 #ENV=m16c
 #ENV=mips
 #ENV=msp430
-#ENV=msp430_srp
+#ENV=pic18
 #ENV=posix
 #ENV=posix_srp
 #ENV=skel
@@ -20,7 +20,7 @@ endif
 ################################################################################
 # Almost as important as the ENV variable is the SRP variable. SRP
 # controls if the SRP or regular version of the kernel should be used. Since
-# this is not an SRP example we will not define SRP.
+# this is NOT an SRP example let's leave it undefined.
 ################################################################################
 
 #SRP=yes
@@ -57,7 +57,7 @@ APP_ROOT=./src/
 # Kernel Makefiles.
 ################################################################################
 
-.PHONY: all build_root build clean
+.PHONY: all build_root build rebuild clean
 all: build_root build
 
 ################################################################################
@@ -93,11 +93,16 @@ $(APP_BINARY): $(ENV_OBJECTS) $(TT_OBJECTS) $(APP_OBJECTS)
 	$(CC) $(LDFLAGS) $^ -o $@
 
 ################################################################################
+# Rebuild rule that should force a rebuild of all the files.
+################################################################################
+rebuild: clean build_root build
+
+################################################################################
 # Last but not the least let's make a clean rule.
 ################################################################################
 
 clean:
-	rm -f $(ENV_OBJECTS) $(TT_OBJECTS) $(APP_OBJECTS)
+	rm -rf $(BUILD_ROOT)
 
 ################################################################################
 # Since we can't really supply the means of flashing the device in a somewhat

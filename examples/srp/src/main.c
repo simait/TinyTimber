@@ -3,8 +3,6 @@
 
 #include "app_objects.h"
 
-/*#define VERBOSE 1*/
-
 typedef struct wait_t 
 {
 	tt_object_t obj;
@@ -137,21 +135,21 @@ static env_result_t queue_d(announce_t *self, void *args)
 
 static void init(void)
 {
-	TT_AFTER_BEFORE(ENV_SEC(1), ENV_SEC(50), &object_a, wait_a, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(1), ENV_SEC(49), &announce, queue_a, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(5), ENV_SEC(0), &release, release_a, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(1), ENV_SEC(50), &object_a, wait_a, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(1), ENV_SEC(49), &announce, queue_a, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(5), ENV_SEC(0), &release, release_a, TT_ARGS_NONE);
 
-	TT_AFTER_BEFORE(ENV_SEC(2), ENV_SEC(40), &object_b, wait_b, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(2), ENV_SEC(39), &announce, queue_b, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(6), ENV_SEC(0), &release, release_b, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(2), ENV_SEC(40), &object_b, wait_b, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(2), ENV_SEC(39), &announce, queue_b, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(6), ENV_SEC(0), &release, release_b, TT_ARGS_NONE);
 	
-	TT_AFTER_BEFORE(ENV_SEC(3), ENV_SEC(30), &object_c, wait_c, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(3), ENV_SEC(29), &announce, queue_c, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(6), ENV_SEC(0), &release, release_c, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(3), ENV_SEC(30), &object_c, wait_c, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(3), ENV_SEC(29), &announce, queue_c, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(6), ENV_SEC(0), &release, release_c, TT_ARGS_NONE);
 	
-	TT_AFTER_BEFORE(ENV_SEC(4), ENV_SEC(20), &object_d, wait_d, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(4), ENV_SEC(19), &announce, queue_d, TT_ARGS_NONE);
-	TT_AFTER_BEFORE(ENV_SEC(8), ENV_SEC(0), &release, release_d, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(4), ENV_SEC(20), &object_d, wait_d, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(4), ENV_SEC(19), &announce, queue_d, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(8), ENV_SEC(0), &release, release_d, TT_ARGS_NONE);
 }
 
 ENV_STARTUP(init);

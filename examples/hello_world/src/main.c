@@ -40,19 +40,16 @@ typedef struct hello_t
 
 static hello_t hello;
 
-static env_result_t hello_cb(tt_object_t *obj, void *arg)
+static env_result_t hello_world(tt_object_t *self, void *arg)
 {
-	TT_AFTER(ENV_SEC(1), obj, hello_cb, TT_ARGS_NONE);
-
+	TT_WITHIN(ENV_SEC(1), ENV_MSEC(500), self, hello_world, TT_ARGS_NONE);
 	ENV_DEBUG("Hello World!\n");
-
 	return 0;
 }
 
 void init(void)
 {
-	memset(&hello, 0, sizeof(hello));
-	TT_AFTER_BEFORE(ENV_MSEC(100), ENV_SEC(1),&hello, hello_cb, TT_ARGS_NONE);
+	TT_WITHIN(ENV_SEC(0), ENV_MSEC(500),&hello, hello_world, TT_ARGS_NONE);
 }
 
 ENV_STARTUP(init);

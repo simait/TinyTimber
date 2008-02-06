@@ -50,7 +50,7 @@ typedef struct tt_thread_t tt_thread_t;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber object typedef.
+ * \brief TinyTimber object typedef.
  */
 typedef struct tt_object_t
 {
@@ -85,7 +85,7 @@ typedef struct tt_object_t
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber object "constructor".
+ * \brief TinyTimber object "constructor".
  */
 #if defined TT_SRP
 #	define tt_object(id, req) {{(1<<(id)), req}}
@@ -96,14 +96,14 @@ typedef struct tt_object_t
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber method signature.
+ * \brief TinyTimber method signature.
  */
 typedef env_result_t (*tt_method_t)(tt_object_t *, void *);
 
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber recepit typedef.
+ * \brief TinyTimber recepit typedef.
  */
 typedef struct tt_receipt_t
 {
@@ -118,7 +118,7 @@ typedef struct tt_receipt_t
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber flags typedef.
+ * \brief TinyTimber flags typedef.
  *
  * The size of any flag must not exceed the maximum size of the flag type.
  */
@@ -141,7 +141,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_ARGS_NONE macro.
+ * \brief TinyTimber TT_ARGS_NONE macro.
  *
  * Should indicate that no argument should be sent to the function.
  */
@@ -151,7 +151,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_ACTION() macro.
+ * \brief TinyTimber TT_ACTION() macro.
  *
  * Baseline is always relative to current time, deadline is always
  * relative to the baseline.
@@ -162,7 +162,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_ACTION_R() macro.
+ * \brief TinyTimber TT_ACTION_R() macro.
  *
  * Same as TT_ACTION() but with receipt.
  */
@@ -172,7 +172,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_ASYNC() macro.
+ * \brief TinyTimber TT_ASYNC() macro.
  *
  * Will evaluate to TT_ACTION() with baseline 0 and deadline 0.
  */
@@ -182,7 +182,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_ASYNC_R() macro.
+ * \brief TinyTimber TT_ASYNC_R() macro.
  *
  * Same as TT_ASYNC() but with receipt.
  */
@@ -192,7 +192,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_AFTER() macro.
+ * \brief TinyTimber TT_AFTER() macro.
  *
  * Will evaluate to TT_ACTION() with baseline bl and deadline 0.
  */
@@ -202,7 +202,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_AFTER_R() macro.
+ * \brief TinyTimber TT_AFTER_R() macro.
  *
  * Same as TT_AFTER() but with receipt.
  */
@@ -212,7 +212,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_BEFORE() macro.
+ * \brief TinyTimber TT_BEFORE() macro.
  *
  * Will evaluate to TT_ACTION() with baseline 0, and deadline dl.
  */
@@ -222,7 +222,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_BEFORE_R() macro.
+ * \brief TinyTimber TT_BEFORE_R() macro.
  *
  * Same as TT_BEFORE() but with receipt.
  */
@@ -232,7 +232,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_AFTER_BEFORE() macro.
+ * \brief TinyTimber TT_AFTER_BEFORE() macro.
  *
  * Will evaluate to TT_ACTION() with baseline bl and deadline dl.
  */
@@ -242,7 +242,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_AFTER_BEFORE_R() macro.
+ * \brief TinyTimber TT_AFTER_BEFORE_R() macro.
  *
  * Same as TT_ARFTER_BEFORE() but with receipt.
  */
@@ -252,7 +252,25 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_CANCEL() macro.
+ * \brief TinyTimber TT_WITHIN() macro.
+ *
+ * Exactly the same name as TT_AFTER_BEFORE().
+ */
+#define TT_WITHIN TT_AFTER_BEFORE
+
+/* ************************************************************************** */
+
+/**
+ * \brief TinyTimber TT_WITHIN_R() macro.
+ *
+ * Exactly the same name as TT_AFTER_BEFORE_R().
+ */
+#define TT_WITHIN_R TT_AFTER_BEFORE_R
+
+/* ************************************************************************** */
+
+/**
+ * \brief TinyTimber TT_CANCEL() macro.
  *
  * Will cancel the message specified by the receipt, if possible.
  */
@@ -262,7 +280,7 @@ extern char tt_args_none;
 /* ************************************************************************** */
 
 /**
- * \brief tinyTimber TT_SYNC() macro.
+ * \brief TinyTimber TT_SYNC() macro.
  *
  * Performs a synchronus call.
  */
