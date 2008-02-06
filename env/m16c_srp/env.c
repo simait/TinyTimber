@@ -32,29 +32,29 @@
 #include <types.h>
 
 #include <tT.h>
-#include <kernel.h>
+#include <kernel_srp.h>
 
 /** \cond */
 
-env_time_t m16c_timer_next = 0;
-env_time_t m16c_timer_base = 0;
-env_time_t m16c_timer_timestamp = 0;
-static char m16c_timer_active = 0;
+env_time_t m16c_srp_timer_next = 0;
+env_time_t m16c_srp_timer_base = 0;
+env_time_t m16c_srp_timer_timestamp = 0;
+static char m16c_srp_timer_active = 0;
 
 /*
  * Epoch schedule funtion, handles scheduling of interrupts in the middle
  * of each epoch (between 2 timer underflows).
  */
-static inline void m16c_timer_epoch_schedule(void) {
+static inline void m16c_srp_timer_epoch_schedule(void) {
 	signed long diff;
 
 	/* Only schedule when there is an active baseline. */
-	if (!m16c_timer_active)
+	if (!m16c_srp_timer_active)
 		return;
 
-	diff = m16c_timer_next - m16c_timer_base;
-	if (diff < M16C_TIMER_COUNT) {
-		if (diff <= (M16C_TIMER_COUNT - TA0)) {
+	diff = m16c_srp_timer_next - m16c_srp_timer_base;
+	if (diff < M16C_SRP_TIMER_COUNT) {
+		if (diff <= (M16C_SRP_TIMER_COUNT - TA0)) {
 			/* Must use mov instruction for this register. */
 			asm ("mov.w	#1, %0\n" :: "m" (TA1));
 		} else {
@@ -71,11 +71,11 @@ static inline void m16c_timer_epoch_schedule(void) {
 
 /*
  * The timer 0 interrupt, only handles the updating of the abolute time counted
- * by m16c_timer_base.
+ * by m16c_srp_timer_base.
  */
-ENV_INTERRUPT(M16C_TMRA0) {
-	m16c_timer_base += M16C_TIMER_COUNT;
-	m16c_timer_epoch_schedule();
+ENV_INTERRUPT(M16C_SRP_TMRA0) {
+	m16c_srp_timer_base += M16C_SRP_TIMER_COUNT;
+	m16c_srp_timer_epoch_schedule();
 }
 
 
@@ -83,11 +83,11 @@ ENV_INTERRUPT(M16C_TMRA0) {
  * Timer 1 interrupt, will occur when a baseline has expired and will notify
  * the kernel of this.
  */
-ENV_INTERRUPT(M16C_TMRA1) {
-	m16c_timer_active = 0;
+ENV_INTERRUPT(M16C_SRP_TMRA1) {
+	m16c_srp_timer_active = 0;
 
 
-	tt_expired(m16c_timer_next);
+	tt_expired(m16c_srp_timer_next);
 	tt_schedule();
 }
 
@@ -106,7 +106,7 @@ void vector_panic(void)
  * Takes care of serial and timer setup, should render the environment in
  * a usable state.
  */
-void m16c_init(void) {
+void m16c_srp_init(void) {
 	/* Setup USART1 at 57600. */
 	U1MR.BYTE = 0x05;
 	U1C0.BYTE = 0x10;
@@ -143,7 +143,7 @@ void m16c_init(void) {
  *
  * \param str The string that should be printed.
  */
-void m16c_print(const char *str) {
+void m16c_srp_print(const char *str) {
 	while (*str) {
 		while (!(U1C1.BYTE & 0x02));
 		U1TB.BYTE.U1TBL = *str++;
@@ -160,7 +160,7 @@ void m16c_print(const char *str) {
  *
  * \param val The value to print.
  */
-void m16c_print_hex(unsigned long val) {
+void m16c_srp_print_hex(unsigned long val) {
 	static char hex[16] = {
 		'0', '1', '2', '3',
 		'4', '5', '6', '7',
@@ -174,7 +174,7 @@ void m16c_print_hex(unsigned long val) {
 		*tmp-- = hex[val&0x0f];
 		val >>= 4;
 	}
-	m16c_print(fmt);
+	m16c_srp_print(fmt);
 }
 
 /* ************************************************************************** */
@@ -186,9 +186,9 @@ void m16c_print_hex(unsigned long val) {
  *
  * \param str The string that should be printed.
  */
-void m16c_panic(const char *str) {
-	m16c_protect(1);
-	m16c_print(str);
+void m16c_srp_panic(const char *str) {
+	m16c_srp_protect(1);
+	m16c_srp_print(str);
 	for (;;) {
 		/*asm("wait\n");*/
 	}
@@ -201,8 +201,8 @@ void m16c_panic(const char *str) {
  *
  * Should initialize the idle thread and place the environment in an idle state.
  */
-void m16c_idle(void) {
-	m16c_protect(0);
+void m16c_srp_idle(void) {
+	m16c_srp_protect(0);
 	for (;;) {
 		asm("wait\n");
 	}
@@ -214,7 +214,7 @@ void m16c_idle(void) {
  *
  * Will start the environment timer.
  */
-void m16c_timer_start(void) {
+void m16c_srp_timer_start(void) {
 	TABSR.BIT.TA0S = 1;
 }
 
@@ -227,9 +227,9 @@ void m16c_timer_start(void) {
  *
  * \param when When the next interrupt should occur.
  */
-void m16c_timer_set(env_time_t when) {
-	m16c_timer_next = when;
-	m16c_timer_active = 1;
+void m16c_srp_timer_set(env_time_t when) {
+	m16c_srp_timer_next = when;
+	m16c_srp_timer_active = 1;
 
-	m16c_timer_epoch_schedule();
+	m16c_srp_timer_epoch_schedule();
 }

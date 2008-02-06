@@ -31,22 +31,21 @@
 /**
  * \brief M16C Environment.
  */
-#ifndef ENV_M16C_ENV_H_
-#define ENV_M16C_ENV_H_
+#ifndef ENV_M16C_SRP_ENV_H_
+#define ENV_M16C_SRP_ENV_H_
 
 #include <types.h>
-#include <kernel.h>
-#include <m16c/interrupts.h>
+#include <m16c_srp/interrupts.h>
 
-#include <m16c/iom16c62.h>
+#include <m16c_srp/iom16c62.h>
 
-void m16c_init(void);
-void m16c_print(const char *);
-void m16c_print_hex(unsigned long);
-void m16c_panic(const char *);
-void m16c_idle(void);
-void m16c_timer_start(void);
-void m16c_timer_set(env_time_t);
+void m16c_srp_init(void);
+void m16c_srp_print(const char *);
+void m16c_srp_print_hex(unsigned long);
+void m16c_srp_panic(const char *);
+void m16c_srp_idle(void);
+void m16c_srp_timer_start(void);
+void m16c_srp_timer_set(env_time_t);
 
 /* ************************************************************************** */
 
@@ -66,7 +65,7 @@ void m16c_timer_set(env_time_t);
  * required by the environment such as serial ports, timers etc.
  */
 #define ENV_INIT() \
-	m16c_init()
+	m16c_srp_init()
 
 /* ************************************************************************** */
 
@@ -76,7 +75,7 @@ void m16c_timer_set(env_time_t);
  * May print the string pointer to by msg but it is not required.
  */
 #define ENV_DEBUG(msg) \
-	m16c_print(msg)
+	m16c_srp_print(msg)
 
 /* ************************************************************************** */
 
@@ -87,7 +86,7 @@ void m16c_timer_set(env_time_t);
  * execution.
  */
 #define ENV_PANIC(msg) \
-	m16c_panic(msg)
+	m16c_srp_panic(msg)
 
 /* ************************************************************************** */
 
@@ -98,7 +97,7 @@ void m16c_timer_set(env_time_t);
  * otherwise it should leave protected mode.
  */
 #define ENV_PROTECT(state) \
-	m16c_protect(state)
+	m16c_srp_protect(state)
 
 /* ************************************************************************** */
 
@@ -109,7 +108,7 @@ void m16c_timer_set(env_time_t);
  * otherwise it should evaluate to zero.
  */
 #define ENV_ISPROTECTED() \
-	m16c_isprotected()
+	m16c_srp_isprotected()
 
 /* ************************************************************************** */
 
@@ -121,7 +120,7 @@ void m16c_timer_set(env_time_t);
  * to by tt_current so that the kernel can dispatch another thread.
  */
 #define ENV_IDLE() \
-	m16c_idle()
+	m16c_srp_idle()
 
 /* ************************************************************************** */
 
@@ -131,7 +130,7 @@ void m16c_timer_set(env_time_t);
  * Should start the environment timer service.
  */
 #define ENV_TIMER_START() \
-	m16c_timer_start()
+	m16c_srp_timer_start()
 
 /* ************************************************************************** */
 
@@ -141,14 +140,14 @@ void m16c_timer_set(env_time_t);
  * Should set the time when tt_expired(time) should be called.
  */
 #define ENV_TIMER_SET(value) \
-	m16c_timer_set(value)
+	m16c_srp_timer_set(value)
 
 /* ************************************************************************** */
 
 /**
  * \brief M16C Environment main clock frequency.
  */
-#define M16C_MAIN_CLOCK	16000000UL
+#define M16C_SRP_MAIN_CLOCK	16000000UL
 
 /* ************************************************************************** */
 
@@ -157,14 +156,14 @@ void m16c_timer_set(env_time_t);
  *
  * The number of time units in one epoch.
  */
-#define M16C_TIMER_COUNT 0x10000UL
+#define M16C_SRP_TIMER_COUNT 0x10000UL
 
 /* ************************************************************************** */
 
 /**
  * \brief M16C Environment timer frequency.
  */
-#define M16C_TIMER_HZ (M16C_MAIN_CLOCK/32/2)
+#define M16C_SRP_TIMER_HZ (M16C_SRP_MAIN_CLOCK/32/2)
 
 /* ************************************************************************** */
 
@@ -174,7 +173,7 @@ void m16c_timer_set(env_time_t);
  * Should evaluate to the current time.
  */
 #define ENV_TIMER_GET() \
-	m16c_timer_get()
+	m16c_srp_timer_get()
 
 /* ************************************************************************** */
 
@@ -184,7 +183,7 @@ void m16c_timer_set(env_time_t);
  * Should evaluate to the time when the most recent interrupt was triggered.
  */
 #define ENV_TIMESTAMP() \
-	m16c_timestamp()
+	m16c_srp_timestamp()
 
 /* ************************************************************************** */
 
@@ -195,7 +194,7 @@ void m16c_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_USEC(n) \
-	(((env_time_t)n*M16C_TIMER_HZ)/1000000UL)
+	(((env_time_t)n*M16C_SRP_TIMER_HZ)/1000000UL)
 
 /* ************************************************************************** */
 
@@ -206,7 +205,7 @@ void m16c_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_MSEC(n) \
-	(((env_time_t)n*M16C_TIMER_HZ)/1000UL)
+	(((env_time_t)n*M16C_SRP_TIMER_HZ)/1000UL)
 
 /* ************************************************************************** */
 
@@ -217,7 +216,7 @@ void m16c_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_SEC(n) \
-	((env_time_t)n*M16C_TIMER_HZ)
+	((env_time_t)n*M16C_SRP_TIMER_HZ)
 
 /* ************************************************************************** */
 
@@ -297,7 +296,7 @@ do{\
  * \param protect If non-zero enter protected mode, otherwise leave
  * protected mode.
  */
-static inline void m16c_protect(int protect) {
+static inline void m16c_srp_protect(int protect) {
 	if (protect) {
 		asm("fclr i\n");
 	} else {
@@ -314,7 +313,7 @@ static inline void m16c_protect(int protect) {
  *
  * \return non-zero if protected mode, otherwise unprotected.
  */
-static inline int m16c_isprotected(void) {
+static inline int m16c_srp_isprotected(void) {
 	int tmp;
 	asm("stc flg, %0\n" : "=r" (tmp));
 	return !(tmp & 0x40);
@@ -327,9 +326,9 @@ static inline int m16c_isprotected(void) {
  *
  * \return The current time.
  */
-static inline env_time_t m16c_timer_get(void) {
-	extern env_time_t m16c_timer_base;
-	return m16c_timer_base + (0xffff - TA0);
+static inline env_time_t m16c_srp_timer_get(void) {
+	extern env_time_t m16c_srp_timer_base;
+	return m16c_srp_timer_base + (0xffff - TA0);
 }
 
 /* ************************************************************************** */
@@ -339,9 +338,9 @@ static inline env_time_t m16c_timer_get(void) {
  *
  * \return The timestamp of the previous interrupt.
  */
-static inline env_time_t m16c_timestamp(void) {
-	extern env_time_t m16c_timer_timestamp;
-	return m16c_timer_timestamp;
+static inline env_time_t m16c_srp_timestamp(void) {
+	extern env_time_t m16c_srp_timer_timestamp;
+	return m16c_srp_timer_timestamp;
 }
 
 #endif

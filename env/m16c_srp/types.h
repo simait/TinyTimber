@@ -34,18 +34,18 @@
  * Just used for compile testing and perhaps as a template for a new
  * environment. Should compile but does not run.
  */
-#ifndef ENV_M16C_TYPES_H_
-#define ENV_M16C_TYPES_H_
+#ifndef ENV_M16C_SRP_TYPES_H_
+#define ENV_M16C_SRP_TYPES_H_
 
 /**
  * \brief M16C Environment context.
  *
  * Structure representing a context.
  */
-typedef struct m16c_context_t {
+typedef struct m16c_srp_context_t {
 	unsigned char *sp;
 	unsigned short *cookie;
-} m16c_context_t;
+} m16c_srp_context_t;
 
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ typedef struct m16c_context_t {
  * Should evalutate to the type that is used to store the context of a
  * thread.
  */
-typedef m16c_context_t env_context_t;
+typedef m16c_srp_context_t env_context_t;
 
 /* ************************************************************************** */
 

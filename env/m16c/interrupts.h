@@ -106,4 +106,12 @@
 #define M16C_SINT30		62
 #define M16C_SINT31		63
 
+/* Regular C-Style interrupt management. */
+
+#define _M16C_INTERRUPT(id) \
+	__attribute__((interrupt)) void _vector_##id(void)
+
+#define M16C_INTERRUPT(id) \
+	_M16C_INTERRUPT(id)
+
 #endif
