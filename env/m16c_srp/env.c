@@ -73,7 +73,7 @@ static inline void m16c_srp_timer_epoch_schedule(void) {
  * The timer 0 interrupt, only handles the updating of the abolute time counted
  * by m16c_srp_timer_base.
  */
-ENV_INTERRUPT(M16C_SRP_TMRA0) {
+ENV_INTERRUPT(M16C_TMRA0) {
 	m16c_srp_timer_base += M16C_SRP_TIMER_COUNT;
 	m16c_srp_timer_epoch_schedule();
 }
@@ -83,7 +83,7 @@ ENV_INTERRUPT(M16C_SRP_TMRA0) {
  * Timer 1 interrupt, will occur when a baseline has expired and will notify
  * the kernel of this.
  */
-ENV_INTERRUPT(M16C_SRP_TMRA1) {
+ENV_INTERRUPT(M16C_TMRA1) {
 	m16c_srp_timer_active = 0;
 
 
