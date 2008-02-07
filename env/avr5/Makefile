@@ -22,7 +22,7 @@ endif
 ################################################################################
 
 CC		:= avr-gcc
-CFLAGS	:= -DENV_AVR5=1 -mmcu=avr5 -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
+CFLAGS	:= -DENV_AVR5=1 -mmcu=at90can128 -O2 -Wall -I$(ENV_ROOT) $(CFLAGS)
 
 ################################################################################
 # Setup the rules for building the required object files from the source.
