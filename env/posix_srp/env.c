@@ -60,8 +60,8 @@ static void interrupt_handler(int sig)
 {
 	switch (sig) {
 		case SIGALRM:
-			if (tt_expired(posix_srp_timer_get()))
-				tt_schedule();
+			tt_expired(posix_srp_timer_get());
+			tt_schedule();
 			break;
 	
 		default:
