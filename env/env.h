@@ -40,7 +40,7 @@
 #		include "msp430/env.h"
 #	elif defined ENV_MSP430_SRP
 #		include "msp430_srp/env.h"
-#	elif defined ENVAVR5
+#	elif defined ENV_AVR5
 #		include "avr5/env.h"
 #	elif defined ENV_PIC18
 #		include "pic18/env.h"
