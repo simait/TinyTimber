@@ -383,49 +383,64 @@ ENV_CODE_FAST void tt_schedule(void)
 {
 	tt_message_t *tmp;
 
-	TT_SANITY(ENV_ISPROTECTED());
-
-	/* If there are not messages waiting to run then no-op. */
-	if (!messages.active) {
-		return;
-	}
-
 	/*
-	 * Ok, we now have 2 constraints that we need to check, first is resource
-	 * and secondly is the deadline. Of the two the resource has precedence
-	 * in accordance with SRP.
+	 * Keep running messages until there are no more messages in the active
+	 * queue waiting to be run.
 	 */
+	for (;;) {
 
-	/* If nothing else is running then get cracking. */
-	if (!messages.running) {
-		goto dispatch;
+		TT_SANITY(ENV_ISPROTECTED());
+
+		/* If there are not messages waiting to run then no-op. */
+		if (!messages.active) {
+			return;
+		}
+
+		/*
+		 * Ok, we now have 2 constraints that we need to check, first is resource
+		 * and secondly is the deadline. Of the two the resource has precedence
+		 * in accordance with SRP.
+		 */
+
+		/* If nothing else is running then get cracking. */
+		if (!messages.running) {
+			goto dispatch;
+		}
+
+		/* Resource. */
+		if (
+			!ENV_RESOURCE_AVAILABLE(
+				tt_resources,
+				messages.active->to->resource.req
+				)
+			) {
+			return;
+		}
+
+		/* Deadline. */
+		if (
+			!ENV_TIME_LT(
+				messages.active->deadline,
+				messages.running->deadline
+				)
+			) {
+			return;
+		}
+
+	dispatch:
+		/* Dispatch the message at the top of the active stack. */
+		DEQUEUE(messages.active, tmp);
+		ENQUEUE(messages.running, tmp);
+
+		/* Clear the receipt. */
+		if (tmp->receipt) {
+			tmp->receipt->msg = NULL;
+		}
+
+		/* Perform the request, this will be the "root" of the request chain. */
+		ENV_INTERRUPT_PRIORITY_RESET();
+		tt_request(tmp->to, tmp->method, tmp->arg.buf);
 	}
-
-	/* Resource. */
-	if (!ENV_RESOURCE_AVAILABLE(tt_resources, messages.active->to->resource.req)) {
-		return;
-	}
-
-	/* Deadline. */
-	if (!ENV_TIME_LT(messages.active->deadline, messages.running->deadline)) {
-		return;
-	}
-
-dispatch:
-	/* Dispatch the message at the top of the active stack. */
-	DEQUEUE(messages.active, tmp);
-	ENQUEUE(messages.running, tmp);
-
-	/* Clear the receipt. */
-	if (tmp->receipt) {
-		tmp->receipt->msg = NULL;
-	}
-
-	/* Perform the request, this will be the "root" of the request chain. */
-	ENV_INTERRUPT_PRIORITY_RESET();
-	ENV_PROTECT(0);
-	tt_request(tmp->to, tmp->method, tmp->arg.buf);
-	ENV_PROTECT(1);
 }
 
 /* ************************************************************************** */
@@ -439,10 +454,9 @@ dispatch:
  * \param now The time that caused the interrupt.
  * \return non-zero if tt_schedule() should be called, otherwise zero.
  */
-int ENV_CODE_FAST tt_expired(env_time_t now)
+void ENV_CODE_FAST tt_expired(env_time_t now)
 {
 	tt_message_t *tmp;
-	tt_message_t *old_head = messages.active;
 
 	TT_SANITY(ENV_ISPROTECTED());
 
@@ -462,8 +476,6 @@ int ENV_CODE_FAST tt_expired(env_time_t now)
 	if (messages.inactive) {
 		ENV_TIMER_SET(messages.inactive->baseline);
 	}
-
-	return old_head != messages.active;
 }
 
 /* ************************************************************************** */
@@ -490,11 +502,11 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 {
 	tt_message_t *tmp;
 	env_result_t result;
-	int protected = ENV_ISPROTECTED(); /* Save state for exit. */
 
 	TT_SANITY(to);
 	TT_SANITY(method);
 	TT_SANITY(to->resource.id & to->resource.req);
+	TT_SANITY(ENV_ISPROTECTED());
 
 	ENV_PROTECT(1);
 
@@ -507,22 +519,29 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 	}
 	ENV_RESOURCE_AQUIRE(tt_resources, to->resource.id);
 
-	ENV_PROTECT(protected);
+	ENV_PROTECT(0);
 	result = method(to, arg);
 	ENV_PROTECT(1);
 
+	/* Release the resource again an schedule any even that has an
+	 * earlier deadline than the currently running messages. We should
+	 * NOT be tempted and call tt_schedule after we remove ourself if
+	 * we are the root of a request chain, it's better to back out to the
+	 * schedule function that invoked us and call it from there.
+	 */
 	ENV_RESOURCE_RELEASE(tt_resources, to->resource.id);
+	tt_schedule();
 
-	/* This message was the root of a request chain. */
+	/* 
+	 * If this message was the root of a chain of synchronous messages then
+	 * we should remove ourself from the running queue since we are done
+	 * once we return from this function.
+	 */
 	if (messages.running->to == to) {
 		DEQUEUE(messages.running, tmp);
 		ENQUEUE(messages.free, tmp);
 	}
 
-	/* Always check if there is something more important to run. */
-	tt_schedule();
-
-	ENV_PROTECT(protected);
 	return result;
 }
 
