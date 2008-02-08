@@ -95,7 +95,7 @@ unsigned char __attribute__((aligned(4))) arm7_stack[ARM7_STACKSIZE];
  * This is an export so that crt.s knows where to place the user/system mode
  * stack.
  */
-const unsigned int * const _arm7_stack_start =
+const unsigned int * const arm7_stack_start =
 	(const unsigned int * const)&arm7_stack[ARM7_STACKSIZE];
 
 /* ************************************************************************** */

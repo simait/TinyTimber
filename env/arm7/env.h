@@ -417,8 +417,14 @@ void _arm7_protect(int);
  * reset.
  */
 #define ENV_STARTUP(function) \
-__attribute__((naked)) int main(void)\
+int main(void)\
 {\
+	extern const unsigned int * const arm7_stack_start;\
+	asm(\
+		"ldr	r0, %0\n"\
+		"ldr	sp, [r0]\n"\
+	   :: "m" (arm7_stack_start)\
+	   );\
 	tt_init();\
 	function();\
 	tt_run();\

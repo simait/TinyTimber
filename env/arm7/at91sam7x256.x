@@ -8,9 +8,11 @@ MEMORY
 	ram		:	ORIGIN = 0x200000,	LENGTH = 64K
 }
 
-/* Provide some information about where the RAM starts and ends. */
-__ram_start	= 0x200000;
-__ram_end	= 0x20fffc;
+/* Provide some information about where some areas start and end. */
+__flash_start = 0x100000;
+__flash_end   = 0x13ffff;
+__ram_start   = 0x200000;
+__ram_end     = 0x20fffc;
 
 /* The sections of the object file. */
 SECTIONS

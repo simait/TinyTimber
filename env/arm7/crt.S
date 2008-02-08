@@ -206,33 +206,31 @@ __init:
 	 */
 	ldr		r0, =_end
 	cmp		sp, r0
-stack_overflow:
-	blo		stack_overflow
+.Lstack_overflow:
+	blo		.Lstack_overflow
 
 	/* System mode, this stack is shared with the user mode. */
 	msr		CPSR_c, #I_BIT|F_BIT|ARM_SYSTEM
-	ldr		r0, =_arm7_stack_start
-	ldr		sp, [r0]
 
 	/* Copy any .data into ram. */
 	ldr		r1, =__ram_start
 	ldr		r2, =__data_start
 	ldr		r3, =__data_end
 
-data_copy:
+.Ldata_copy:
 	cmp		r2, r3
 	ldrlo	r0, [r2], #4
 	strlo	r0, [r1], #4
-	blo		data_copy
+	blo		.Ldata_copy
 
 	/* Zero out .bss. */
 	mov		r0, #0
 	ldr		r1,	=__bss_start
 	ldr		r2, =__bss_end
-bss_zero:
+.Lbss_zero:
 	cmp		r1, r2
 	strlo	r0, [r1], #4
-	blo		bss_zero
+	blo		.Lbss_zero
 
 	/*
 	 * By remapping the SRAM to offset 0 we will gain some slight speedup
