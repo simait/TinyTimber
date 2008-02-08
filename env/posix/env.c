@@ -311,9 +311,8 @@ static void *timer_thread(void *args)
  */
 static void timer_interrupt_handler(int id)
 {
-	if (tt_expired(posix_timer_get())) {
-		tt_schedule();
-	}
+	tt_expired(posix_timer_get());
+	tt_schedule();
 }
 
 /** \endcond */

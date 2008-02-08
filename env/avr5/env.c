@@ -439,6 +439,6 @@ ISR(TIMER1_COMPA_vect)
 	OCR1AOFF();
 	
 	/* Baseline might have expired... */
-	if (tt_expired(avr5_timer_get()))
-		avr5_schedule();
+	tt_expired(avr5_timer_get());
+	avr5_schedule();
 }
