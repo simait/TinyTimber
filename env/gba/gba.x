@@ -19,13 +19,13 @@ MEMORY
 
 /* Provide some information about where some areas start and end. */
 __sflash_start = 0x00000000;
-__sflash_end   = 0x00003fff;
+__sflash_end   = 0x00004000;
 __eram_start   = 0x02000000;
-__eram_end     = 0x0203ffff;
+__eram_end     = 0x02040000;
 __iram_start   = 0x03000000;
-__iram_end     = 0x03007fff;
+__iram_end     = 0x03008000;
 __flash_start  = 0x08000000;
-__flash_end    = 0x09ffffff;
+__flash_end    = 0x0a000000;
 
 /* Provide the start and end of the ram, could be anywhere really. */
 __ram_start    = __iram_start;
@@ -34,13 +34,12 @@ __ram_end      = __iram_end;
 /* The sections of the object file. */
 SECTIONS
 {
-	/* Start at flash. */
-	. = 0;
-
 	.bios :
 	{
+		. = __sflash_start;
 		*(.bios);
-	} > sflash
+		. = __sflash_end;
+	} > sflash =0
 
 	/* Data section, copied by our crt from flash to ram.
      *
@@ -49,14 +48,28 @@ SECTIONS
 	 *	because we wish for the .vectors to be located at offset 0 in the flash
 	 *	where the initializer data is stored.
 	 */
+
+	. = __flash_start;
+	
+	/* Text section. */
+	.text :
+	{
+		*(.vectors);
+		*(.text);
+		*(.rodata);
+		*(.rodata*);
+		*(.got*);
+		*(.data.rel*);
+		*(.glue_7);
+		*(.glue_7t);
+		. = ALIGN(4);
+	} >  flash =0
+
 	.data :
 	{
 		/* This is where the data starts. */
-		*(.vectors);
 		*(.data);
-		*(.forced_ram); /* This is the forced ram section. */
-		. = ALIGN(4);
-	} > ram AT > flash
+	} > iram AT > flash =0
 
 	/* We need this to copy the data. */
 	__data_start = LOADADDR(.data);
@@ -74,19 +87,8 @@ SECTIONS
 		*(COMMON);
 		. = ALIGN(4);
 		__bss_end = .;
-	} > ram
+	} > iram
 
 	/* Provide _end variable, usefull for malloc & co. */
 	_end = ADDR(.bss) + SIZEOF(.bss);
-
-	/* Text section. */
-	.text :
-	{
-		*(.text);
-		*(.rodata);
-		*(.rodata*);
-		*(.glue_7);
-		*(.glue_7t);
-		. = ALIGN(4);
-	} >  flash
 }

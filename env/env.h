@@ -46,6 +46,8 @@
 #		include "pic18/env.h"
 #	elif defined ENV_ARM7
 #		include "arm7/env.h"
+#	elif defined ENV_GBA
+#		include "gba/env.h"
 #	elif defined ENV_MIPS
 #		include "mips/env.h"
 #	elif defined ENV_M16C

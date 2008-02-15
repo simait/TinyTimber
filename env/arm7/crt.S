@@ -199,6 +199,10 @@ __init:
 	mov		sp, r0
 	sub		r0, r0, #ARM_SUPERVISOR_STACK_SIZE
 
+	/* System mode, this stack is shared with the user mode. */
+	msr		CPSR_c, #I_BIT|F_BIT|ARM_SYSTEM
+	mov		sp, r0
+
 	/* 
 	 * This is just a slight sanity check so we don't mess things up. We can't
 	 * really do that much output right now but let's hang the execution so
@@ -208,9 +212,6 @@ __init:
 	cmp		sp, r0
 .Lstack_overflow:
 	blo		.Lstack_overflow
-
-	/* System mode, this stack is shared with the user mode. */
-	msr		CPSR_c, #I_BIT|F_BIT|ARM_SYSTEM
 
 	/* Copy any .data into ram. */
 	ldr		r1, =__ram_start

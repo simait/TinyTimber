@@ -46,6 +46,8 @@
 #		include "pic18/types.h"
 #	elif defined ENV_ARM7
 #		include "arm7/types.h"
+#	elif defined ENV_GBA
+#		include "gba/types.h"
 #	elif defined ENV_MIPS
 #		include "mips/types.h"
 #	elif defined ENV_M16C

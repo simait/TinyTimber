@@ -28,18 +28,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.arm
-.text
-.align
+#ifndef GBA_TIMER_H_
+#define GBA_TIMER_H_
 
-.extern __flash_start
+#if ! defined __GNUC__
+#	define __attribute__(asdf)
+#endif
 
-.section	.bios
-__bios_vec_reset:      ldr	pc, =__flash_start
-__bios_vec_undef:      ldr	pc, =__flash_start+4
-__bios_vec_swi:        ldr	pc, =__flash_start+8
-__bios_vec_code_abort: ldr	pc, =__flash_start+12
-__bios_vec_data_abort: ldr	pc, =__flash_start+16
-__bios_vec_reserved:   nop
-__bios_vec_irq:        ldr	pc, =__flash_start+24
-__bios_vec_fiq:        ldr	pc, =__flash_start+28
+typedef struct gba_timer_t __attribute__((packed))
+{
+	struct {
+		unsigned short cnt;
+		unsigned short ctrl;
+	};
+} gba_timer_t;
+
+#undef __attribute__
+
+#define GBA_T0 ((gba_timer_t*)0x4000100)
+#define GBA_T1 ((gba_timer_t*)0x4000104)
+#define GBA_T2 ((gba_timer_t*)0x4000108)
+#define GBA_T3 ((gba_timer_t*)0x400010c)
+
+#endif

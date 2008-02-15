@@ -37,36 +37,28 @@
 #ifndef ENV_ARM7_ENV_H_
 #define ENV_ARM7_ENV_H_
 
-#include <arm7/types.h>
-#include <arm7/sys_call.h>
-#include <arm7/at91sam7x256.h>
-#include <arm7/lib_at91sam7x256.h>
+#include <types.h>
+#include <gba/sys_call.h>
+#include <gba/arm7.h>
+
+#undef ENV_PANIC
 
 #include <kernel.h>
 
 /* ************************************************************************** */
 
-void arm7_init(void);
-void arm7_panic(const char *);
-void arm7_idle(void);
-void arm7_context_init(arm7_context_t *, size_t, tt_thread_function_t);
-void arm7_context_dispatch(env_context_t *);
-void _arm7_context_dispatch(env_context_t *);
-void arm7_schedule(void);
-void _arm7_schedule(void);
-void arm7_timer_set(env_time_t);
-
-#if defined __thumb__
-int _arm7_isprotected(void);
-void _arm7_protect(int);
-#endif
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 context cookie.
- */
-#define ARM7_CONTEXT_COOKIE 0x55aa55aa
+void gba_init(void);
+void gba_panic(const char *);
+void gba_idle(void);
+void gba_timer_start(void);
+void gba_timer_set(env_time_t);
+env_time_t gba_timer_get(void);
+env_time_t gba_timestamp(void);
+void gba_print(const char *);
+void gba_panic(const char *);
+void gba_schedule(void);
+void _gba_schedule(void);
+void gba_timer_set(env_time_t);
 
 /* ************************************************************************** */
 
@@ -77,7 +69,7 @@ void _arm7_protect(int);
  * required by the environment such as serial ports, timers etc.
  */
 #define ENV_INIT() \
-	arm7_init()
+	gba_init()
 
 /* ************************************************************************** */
 
@@ -87,7 +79,7 @@ void _arm7_protect(int);
  * May print the string pointer to by msg but it is not required.
  */
 #define ENV_DEBUG(msg) \
-	arm7_print(msg)
+	gba_print(msg)
 
 /* ************************************************************************** */
 
@@ -98,140 +90,7 @@ void _arm7_protect(int);
  * execution.
  */
 #define ENV_PANIC(msg) \
-	arm7_panic(msg)
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment protect macro.
- *
- * Should place the environment in a protected mode when state is non-zero
- * otherwise it should leave protected mode.
- */
-#if ! defined __thumb__
-#	define ENV_PROTECT(state) \
-		arm7_protect(state)
-#else
-#	define ENV_PROTECT(state) \
-		_arm7_protect(state)
-#endif
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment isprotected macro.
- *
- * Should evaluate to non-zero when the environment is in a protected mode
- * otherwise it should evaluate to zero.
- */
-#if ! defined __thumb__
-#	define ENV_ISPROTECTED() \
-		arm7_isprotected()
-#else
-#	define ENV_ISPROTECTED() \
-		_arm7_isprotected()
-#endif
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment context init macro.
- *
- * Should initialize a context with a certain amount of stack and running the
- * function. The definition here is just because we wish to compile the
- * skeleton environment without warnings.
- */
-#define ENV_CONTEXT_INIT(context, stacksize, function) \
-	arm7_context_init(context, stacksize, function)
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment context dispatch macro.
- *
- * Should suspend the current context and start executing the specified
- * context. Must change the tt_current variable.
- */
-#define ENV_CONTEXT_DISPATCH(context) \
-	arm7_context_dispatch((env_context_t *)context)
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment context save macro.
- *
- * Saves the current user/system context to tt_current.
- */
-#define ARM7_CONTEXT_SAVE() \
-	__asm__ __volatile__ (\
-		/* r0 & r1 is used as a temporary register, we need lr in swi mode. */\
-		"stmfd	sp!, {r0,r1,lr}\n"\
-		/* Get the user mode stack pointer value. */\
-		"stmdb	sp, {sp}^\n"\
-		"nop\n"\
-		"ldmdb	sp, {r0}\n"\
-		/* Store the return address at the first/highest address. */\
-		"sub	lr, lr, #4\n"\
-		"stmfd	r0!, {lr}\n"\
-		/* Start using lr and restore old r0. */\
-		"mov	lr, r0\n"\
-		"ldmfd	sp, {r0}\n"\
-		/* Save all user mode registers. */\
-		"stmfd	lr, {r0-r14}^\n"\
-		"nop\n"\
-		"sub	lr, lr, #60\n"\
-		/* Save the saved process register. */\
-		"mrs	r0, SPSR\n"\
-		"stmfd	lr!, {r0}\n"\
-		/* Save the stack pointer to the the current variable. */\
-		"ldr	r0, =tt_current\n"\
-		"ldr	r0, [r0]\n"\
-		"str	lr, [r0]\n"\
-		/* Check the context cookie. */\
-		"ldr	r0, [r0, #4]\n"\
-		"ldr	r0, [r0]\n"\
-		"ldr	r1, =arm7_context_cookie\n"\
-		"ldr	r1, [r1]\n"\
-		"cmp	r0, r1\n"\
-		"bne	arm7_context_panic\n"\
-		/* \
-		 * Restore the old r0 _again_, this is so we can use this macro\
-		 * in the software interrupt as well. Don't forget the original\
-		 * lr as well for interrupt id.\
-		 */\
-		"ldmfd	sp!, {r0,r1,lr}\n"\
-		)
-
-/* ************************************************************************** */
-
-/**
- * \brief Environment context restore macro.
- *
- * Restores the tt_current context and start executing it.
- */
-#define ARM7_CONTEXT_RESTORE() \
-	__asm__ __volatile__ (\
-		/* Load the current context stack pointer. */\
-		"ldr	r0, =tt_current\n"\
-		"ldr	r0, [r0]\n"\
-		"ldr	lr, [r0]\n"\
-		/* Check the context cookie. */\
-		"ldr	r0, [r0, #4]\n"\
-		"ldr	r0, [r0]\n"\
-		"ldr	r1, =arm7_context_cookie\n"\
-		"ldr	r1, [r1]\n"\
-		"cmp	r0, r1\n"\
-		"bne	arm7_context_panic\n"\
-		/* Restore the saved saved process status. */\
-		"ldmfd	lr!, {r0}\n"\
-		"msr	SPSR, r0\n"\
-		/* Restore the user context. */\
-		"ldmfd	lr, {r0-r14}^\n"\
-		"nop\n"\
-		"add	lr, lr, #60\n"\
-		/* Get the return address and return(leaves interrupt..). */\
-		"ldmfd	lr, {pc}^\n"\
-		)
+	gba_panic(msg)
 
 /* ************************************************************************** */
 
@@ -243,7 +102,7 @@ void _arm7_protect(int);
  * to by tt_current so that the kernel can dispatch another thread.
  */
 #define ENV_IDLE() \
-	arm7_idle()
+	gba_idle()
 
 /* ************************************************************************** */
 
@@ -253,7 +112,7 @@ void _arm7_protect(int);
  * Should start the environment timer service.
  */
 #define ENV_TIMER_START() \
-	AT91C_BASE_TCB->TCB_TC0.TC_CCR = AT91C_TC_SWTRG
+	gba_timer_start()
 
 /* ************************************************************************** */
 
@@ -263,7 +122,7 @@ void _arm7_protect(int);
  * Should set the time when tt_expired(time) should be called.
  */
 #define ENV_TIMER_SET(time) \
-	arm7_timer_set(time)
+	gba_timer_set(time)
 
 /* ************************************************************************** */
 
@@ -273,7 +132,7 @@ void _arm7_protect(int);
  * Should evaluate to the current time.
  */
 #define ENV_TIMER_GET() \
-	arm7_timer_get()
+	gba_timer_get()
 
 /* ************************************************************************** */
 
@@ -283,7 +142,7 @@ void _arm7_protect(int);
  * Should evaluate to the time when the most recent interrupt was triggered.
  */
 #define ENV_MARK() \
-	arm7_timer_mark()
+	gba_timer_mark()
 
 /* ************************************************************************** */
 
@@ -293,7 +152,7 @@ void _arm7_protect(int);
  * Should evaluate to the time when the most recent interrupt was triggered.
  */
 #define ENV_TIMESTAMP() \
-	arm7_timestamp()
+	gba_timestamp()
 
 /* ************************************************************************** */
 
@@ -308,54 +167,11 @@ void _arm7_protect(int);
 /* ************************************************************************** */
 
 /**
- * \brief The main clock frequency of the AT91SAM7X256.
+ * \brief Environment timer HZ macro.
  *
- * Used to calculate ARM7_MASTER_CLOCK.
+ * The timer maximum resolution.
  */
-#define ARM7_MAIN_CLOCK 18432000UL
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 PPL multiplier.
- *
- * Used to calculate ARM7_MASTER_CLOCK.
- */
-#define ARM7_PLL_MUL 72
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 PLL Fivider.
- *
- * Used to calculate ARM7_MASTER_CLOCK.
- */
-#define ARM7_PLL_DIV 14
-
-/* ************************************************************************** */
-
-/**
- * \brief Master clock frquency.
- *
- * The PLL clock output is:
- *
- * PLL_CLOCK = ((ARM7_MAIN_CLOCK/ARM7_PLL_DIV)*ARM7_PLL_MUL+1)
- *
- * These values will give us a PLL_CLOCK of ~96025764 which is close
- * enough to 96Mhz. We will use a USB divider of 2 to get within the +/-0.25%
- * error for full speed USB. We will also use the PLL divided by 2 as the
- * master clock.
- */
-#define ARM7_MASTER_CLOCK (((ARM7_MAIN_CLOCK/ARM7_PLL_DIV)*(ARM7_PLL_MUL+1))/2)
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 Timer frequency.
- *
- * The frequency the timer will be running at.
- */
-#define ENV_TIMER_HZ (ARM7_MASTER_CLOCK/1024)
+#define ENV_TIMER_HZ 1
 
 /* ************************************************************************** */
 
@@ -411,23 +227,6 @@ void _arm7_protect(int);
 /* ************************************************************************** */
 
 /**
- * \brief Environment startup macro.
- *
- * Should make the environment run the given function upon startup and/or
- * reset.
- */
-#define ENV_STARTUP(function) \
-__attribute__((naked)) int main(void)\
-{\
-	tt_init();\
-	function();\
-	tt_run();\
-	return 0;\
-} extern char dummy /* Force semi-colon. */
-
-/* ************************************************************************** */
-
-/**
  * \brief ARM7 environment extension to force something into the ram.
  *
  * Usually used for interrupt functions and any code that must be in ARM
@@ -442,120 +241,6 @@ __attribute__((naked)) int main(void)\
  *
  * Just force it into the ram with ENV_EXT_FORCE_RAM.
  */
-#define ENV_CODE_FAST ENV_EXT_FORCE_RAM
-
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 stack size(total).
- */
-#define ARM7_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 print function.
- *
- * \param msg The message to print.
- */
-static inline void arm7_print(const char *msg)
-{
-	while (*msg)
-	{
-		while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
-		AT91F_US_PutChar((AT91S_USART *)AT91C_BASE_DBGU, *msg++);
-	}
-	while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 protect function.
- *
- * \param state non-zero to enter protected mode, zero to leave protected mode.
- */
-static inline void arm7_protect(int state)
-{
-	/*
-	 * WARNING!!!
-	 * 	The use of %0 et al. is _very_ fragile and may break at any time.
-	 * 	Honestly I don't have a clue why this miscompiles every now and then...
-	 */
-	int tmp;
-	asm volatile(
-		"cmp	%1, #0\n"
-		"mrs	%0, CPSR\n"
-		"orrne	%0, %0, #0x80|0x40\n"
-		"biceq	%0, %0, #0x80|0x40\n"
-		"msr	CPSR_c, %0\n"
-		: "=r" (tmp)
-		: "r" (state)
-		);
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 isprotected function.
- *
- * \return non-zero if protected, nonzero otherwise.
- */
-static inline int arm7_isprotected(void)
-{
-	/*
-	 * WARNING!!!
-	 * 	The use of %0 et al. is _very_ fragile and may break at any time.
-	 * 	Honestly I don't have a clue why this miscompiles every now and then...
-	 */
-	int tmp;
-	asm volatile(
-			"mrs	%0, CPSR\n"
-			"and	%0, %0, #0x80|0x40\n"
-			: "=r" (tmp)
-			);
-	return tmp;
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 timer get function.
- *
- * \return The current time.
- */
-static inline env_time_t arm7_timer_get(void)
-{
-	extern env_time_t arm7_timer_base;
-	return arm7_timer_base + AT91C_BASE_TC0->TC_CV;
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 timer timestamp function.
- *
- * \return The timestamp of the previous interrupt.
- */
-static inline void arm7_timer_mark(void)
-{
-	extern env_time_t arm7_timer_base;
-	extern env_time_t arm7_timer_timestamp;
-	arm7_timer_timestamp = arm7_timer_base + AT91C_BASE_TC0->TC_CV;
-}
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 timer timestamp function.
- *
- * \return The timestamp of the previous interrupt.
- */
-static inline env_time_t arm7_timestamp(void)
-{
-	extern env_time_t arm7_timer_timestamp;
-	return arm7_timer_timestamp;
-}
+#define ENV_CODE_FAST
 
 #endif

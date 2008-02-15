@@ -1,0 +1,2 @@
+set watchdog 0
+target remote localhost:55555

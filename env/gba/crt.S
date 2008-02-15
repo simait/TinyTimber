@@ -142,8 +142,8 @@ __vec_swi:				ldr	pc, =arm7_sys_call
 __vec_code_abort:		b __vec_code_abort
 __vec_data_abort:		b __vec_data_abort
 __vec_reserved:			nop
-__vec_irq:				ldr	pc,	=_arm7_aic_vec
-__vec_fiq:				ldr pc, =_arm7_aic_vec_fast
+__vec_irq:				ldr	pc,	=_arm7_irq
+__vec_fiq:				ldr pc, =_arm7_fiq
 .popsection
 
 /*
@@ -199,6 +199,10 @@ __init:
 	mov		sp, r0
 	sub		r0, r0, #ARM_SUPERVISOR_STACK_SIZE
 
+	/* System mode, this stack is shared with the user mode. */
+	msr		CPSR_c, #I_BIT|F_BIT|ARM_SYSTEM
+	mov		sp, r0
+
 	/* 
 	 * This is just a slight sanity check so we don't mess things up. We can't
 	 * really do that much output right now but let's hang the execution so
@@ -208,9 +212,6 @@ __init:
 	cmp		sp, r0
 .Lstack_overflow:
 	blo		.Lstack_overflow
-
-	/* System mode, this stack is shared with the user mode. */
-	msr		CPSR_c, #I_BIT|F_BIT|ARM_SYSTEM
 
 	/* Copy any .data into ram. */
 	ldr		r1, =__ram_start
@@ -233,21 +234,6 @@ __init:
 	blo		.Lbss_zero
 
 	/*
-	 * By remapping the SRAM to offset 0 we will gain some slight speedup
-	 * when an interrupt is triggered. This also makes it possible to use
-	 * position relative branches in the vector, might be faster? Anyway
-	 * that way we don't have to mess with the offsets and just go for
-	 * the automatically generated code.
-	 *
-	 * NOTE:
-	 *	The code should now run with or without the remap, if not we
-	 *	have a BUG.
-	 */
-	mov		r0, #0x01
-	mov		r1, #ARM_MC_RCR
-	str		r0, [r1]
-
-	/*
 	 * All done, let's branch to main. The CPU is not yet initialized but this
 	 * is the problem of the main() function. It has to setup the PLL and any
 	 * peripheral devices.
@@ -256,5 +242,11 @@ __init:
 	 *	While the right thing would be to enter user mode here we are on a
 	 *	small embedded system so let's stay in system mode.
 	 */
+	/*
 	ldr		r0, =main
 	bx		r0
+	*/
+stack_fix:
+	ldr		r0, =arm7_stack_start
+	ldr		sp, [r0]
+	ldr		pc, =main

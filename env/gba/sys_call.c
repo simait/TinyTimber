@@ -80,7 +80,7 @@ arm7_sys_call_t arm7_sys_call_table[] =
  *
  * \todo Perform a sanity check that the system call id is valid.
  */
-ENV_EXT_FORCE_RAM __attribute__((naked)) void arm7_sys_call(void)
+__attribute__((naked)) void arm7_sys_call(void)
 {
 	/* 
 	 * Adjudt the link register so that we can treat this as a regular
