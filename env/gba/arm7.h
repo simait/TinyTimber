@@ -55,11 +55,6 @@ extern unsigned char arm7_stack[];
 
 /* ************************************************************************** */
 
-#define ENV_PANIC(msg) \
-	ARM7_BREAK()
-
-/* ************************************************************************** */
-
 /**
  * \brief ARM7 number of threads.
  */
@@ -70,7 +65,7 @@ extern unsigned char arm7_stack[];
 /**
  * \brief ARM7 stack size.
  */
-#define ENV_STACKSIZE 128
+#define ENV_STACKSIZE 256
 
 /* ************************************************************************** */
 

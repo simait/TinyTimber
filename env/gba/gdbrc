@@ -1,2 +1,36 @@
 set watchdog 0
 target remote localhost:55555
+
+define tmr0
+	printf "cnt: %04x, ctrl: %04x\n", *((unsigned short*)0x4000100), *((unsigned short*)0x4000102)
+end
+
+define tmr1
+	printf "cnt: %04x, ctrl: %04x\n", *((unsigned short*)0x4000104), *((unsigned short*)0x4000106)
+end
+
+define tmr2
+	printf "cnt: %04x, ctrl: %04x\n", *((unsigned short*)0x4000108), *((unsigned short*)0x400010a)
+end
+
+define tmr3
+	printf "cnt: %04x, ctrl: %04x\n", *((unsigned short*)0x400010c), *((unsigned short*)0x400010e)
+end
+
+define ie
+	printf "ie: %04x\n", *((unsigned short*)0x4000200)
+end
+
+define if
+	printf "if: %04x\n", *((unsigned short*)0x4000202)
+end
+
+define ime
+	printf "ime: %04x\n", *((unsigned short*)0x4000208)
+end
+
+define timer
+	printf "gba_timer_active: %08x\n", gba_timer_active
+	printf "gba_timer_base:   %08x\n", gba_timer_base
+	printf "gba_timer_next:   %08x\n", gba_timer_next
+end

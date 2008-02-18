@@ -76,8 +76,8 @@ bios: $(GBA_BIOS)
 binary: $(GBA_BINARY)
 
 run: $(APP_BINARY) $(GBA_BIOS) 
-	VisualBoyAdvance --bios=$(GBA_BIOS) $(APP_BINARY)
+	VisualBoyAdvance --throttle=100 --bios=$(GBA_BIOS) $(APP_BINARY)
 
 debug: $(APP_BINARY) $(GBA_BIOS)
-	VisualBoyAdvance --bios=$(GBA_BIOS) --gdb=tcp $(APP_BINARY) > /dev/null &
+	VisualBoyAdvance --throttle=100 --bios=$(GBA_BIOS) --gdb=tcp $(APP_BINARY) > /dev/null &
 	arm-elf-gdb -x $(ENV_ROOT)/$(ENV)/gdbrc $(APP_BINARY)

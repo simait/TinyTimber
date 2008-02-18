@@ -31,23 +31,49 @@
 #ifndef GBA_TIMER_H_
 #define GBA_TIMER_H_
 
-#if ! defined __GNUC__
-#	define __attribute__(asdf)
+#ifndef GBA_INTERNAL_
+#	error Do not include gba_timer.h directly, use gba.h.
 #endif
 
-typedef struct gba_timer_t __attribute__((packed))
+typedef struct gba_timer_t
 {
-	struct {
-		unsigned short cnt;
-		unsigned short ctrl;
+	union
+	{
+		gba_reg32_t	both;
+		struct
+		{
+			gba_reg16_t	cnt;
+			gba_reg16_t	ctrl;
+		};
 	};
 } gba_timer_t;
 
-#undef __attribute__
+#define GBA_TMR0 ((gba_timer_t*)0x4000100)
+#define GBA_TMR1 ((gba_timer_t*)0x4000104)
+#define GBA_TMR2 ((gba_timer_t*)0x4000108)
+#define GBA_TMR3 ((gba_timer_t*)0x400010c)
 
-#define GBA_T0 ((gba_timer_t*)0x4000100)
-#define GBA_T1 ((gba_timer_t*)0x4000104)
-#define GBA_T2 ((gba_timer_t*)0x4000108)
-#define GBA_T3 ((gba_timer_t*)0x400010c)
+/* The difference prescalevalues for the timer. */
+#define GBA_TMR_S1		(0<<0)
+#define GBA_TMR_S32		(1<<0)
+#define GBA_TMR_S256	(2<<0)
+#define GBA_TMR_S1024	(3<<0)
+
+/* Count up mode, ie. when tmrX-1 overflow update tmrX. */
+#define GBA_TMR_CU		(1<<2)
+
+/* Interrupt / Count enable flags. */
+#define GBA_TMR_IEN		(1<<6)
+#define GBA_TMR_ENABLE	(1<<7)
+
+/* Interrupt flags in GBA_IE/GBA_IF. */
+#define GBA_INT_TMR0	(1<<3)
+#define GBA_INT_TMR1	(1<<4)
+#define GBA_INT_TMR2	(1<<5)
+#define GBA_INT_TMR3	(1<<6)
+
+/* The number of ticks of the counter. */
+#define GBA_TMR_COUNT	0x10000
+#define GBA_TMR_BITS	0x0ffff
 
 #endif

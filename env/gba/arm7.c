@@ -28,6 +28,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <env.h>
 #include <gba/arm7.h>
 #include <gba/sys_call.h>
 
@@ -86,12 +87,15 @@ void arm7_context_init(arm7_context_t *context, size_t stacksize, tt_thread_func
 	static unsigned int arm7_stack_offset = ARM7_STACKSIZE-ENV_STACKSIZE_IDLE;
 
 	/* Check for alignment. */
-	if (stacksize & 0x3)
-		ENV_PANIC("arm7_context_init(): Missalligned stacksize requested.\n");
+	if (stacksize & 0x3) {
+		ARM7_BREAK();
+	}
 	
 	/* Make sure we have enough stack and assign some to the context. */
-	if (arm7_stack_offset < stacksize)
-		ENV_PANIC("arm7_context_init(): Out of memory.\n");
+	if (arm7_stack_offset < stacksize) {
+		ARM7_BREAK();
+	}
+
 	context->sp = (unsigned int *)&arm7_stack[arm7_stack_offset];
 	context->cookie = (unsigned int*)&arm7_stack[arm7_stack_offset-stacksize];
 	*context->cookie = ARM7_CONTEXT_COOKIE;
@@ -170,14 +174,13 @@ int _arm7_isprotected(void)
 
 __attribute__((naked)) void _arm7_irq(void)
 {
-	ARM7_BREAK();
-	
 	ARM7_CONTEXT_SAVE();
 
 	/* 
 	 * Interrupt handling code goes here, such as figuring out what
 	 * happened (no vectored interrupt conteoller for the GBA).
 	 */
+	gba_interrupt();
 
 	ARM7_CONTEXT_RESTORE();
 }

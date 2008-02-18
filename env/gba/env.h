@@ -28,27 +28,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \brief Skeleton environment.
- *
- * Just used for compile testing and perhaps as a template for a new
- * environment. Should compile but does not run.
- */
 #ifndef ENV_ARM7_ENV_H_
 #define ENV_ARM7_ENV_H_
 
 #include <types.h>
 #include <gba/sys_call.h>
 #include <gba/arm7.h>
-
-#undef ENV_PANIC
+#include <gba/gba.h>
 
 #include <kernel.h>
 
 /* ************************************************************************** */
 
 void gba_init(void);
-void gba_panic(const char *);
 void gba_idle(void);
 void gba_timer_start(void);
 void gba_timer_set(env_time_t);
@@ -59,6 +51,7 @@ void gba_panic(const char *);
 void gba_schedule(void);
 void _gba_schedule(void);
 void gba_timer_set(env_time_t);
+void gba_interrupt(void);
 
 /* ************************************************************************** */
 
@@ -171,7 +164,7 @@ void gba_timer_set(env_time_t);
  *
  * The timer maximum resolution.
  */
-#define ENV_TIMER_HZ 1
+#define ENV_TIMER_HZ ((GBA_CPU_FREQ+255)/256)
 
 /* ************************************************************************** */
 
@@ -202,27 +195,6 @@ void gba_timer_set(env_time_t);
  * the environment.
  */
 #define ENV_SEC(n) (n*ENV_TIMER_HZ)
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 number of threads.
- */
-#define ENV_NUM_THREADS	5
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 stack size.
- */
-#define ENV_STACKSIZE 128
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 idle stack size.
- */
-#define ENV_STACKSIZE_IDLE 128
 
 /* ************************************************************************** */
 

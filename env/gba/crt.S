@@ -105,9 +105,7 @@
 .extern _abort
 .extern _undef
 .extern main
-.extern _arm7_stack_start
 .extern _arm7_sys_call
-.extern _arm7_vec_aic
 
 /*
  * The external functions of this, should only be the entry point ie.
@@ -241,12 +239,18 @@ __init:
 	 * NOTE:
 	 *	While the right thing would be to enter user mode here we are on a
 	 *	small embedded system so let's stay in system mode.
+	 *
+	 * NOTE2:
+	 *	Also setup r0, and r1 to zero as some might try to use them as
+	 *	parameters.
 	 */
-	/*
-	ldr		r0, =main
-	bx		r0
-	*/
-stack_fix:
-	ldr		r0, =arm7_stack_start
-	ldr		sp, [r0]
-	ldr		pc, =main
+	mov		r0, #0
+	mov		r1, #0
+	ldr		r2, =main
+	mov		lr, pc
+	bx		r2
+
+.Ldone:
+	/* bkpt not supported by arm7tdmi but result will be the same. */
+	.word	0xe1200070 /* bkpt 0x0000 */
+	b		.Ldone

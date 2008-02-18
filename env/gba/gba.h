@@ -31,6 +31,20 @@
 #ifndef GBA_H_
 #define GBA_H_
 
+#define GBA_INTERNAL_
+
+#define GBA_CPU_FREQ	16780000
+
+typedef volatile unsigned char gba_reg8_t;
+typedef volatile unsigned short gba_reg16_t;
+typedef volatile unsigned int gba_reg32_t;
+
+#define GBA_IE	(*((gba_reg16_t *)0x4000200))
+#define GBA_IF	(*((gba_reg16_t *)0x4000202))
+#define GBA_IME	(*((gba_reg16_t *)0x4000208))
+
 #include "gba_timer.h"
+
+#undef GBA_INTERNAL_
 
 #endif
