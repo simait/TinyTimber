@@ -820,7 +820,7 @@ ENV_CODE_FAST void tt_action(
 		)
 {
 	int protected = ENV_ISPROTECTED();
-	env_time_t base;
+	env_time_t base, now;
 	tt_message_t *msg;
 
 	TT_SANITY(to);
@@ -885,9 +885,10 @@ ENV_CODE_FAST void tt_action(
 	 * 	Fully implement the new time semantics, with inherrited
 	 * 	deadlines/baselines.
 	 */
+	now = ENV_TIMER_GET();
 	msg->baseline = ENV_TIME_ADD(base, bl);
-	if (ENV_TIME_LT(msg->baseline, ENV_TIMER_GET())) {
-		msg->baseline = ENV_TIMER_GET();
+	if (ENV_TIME_LT(msg->baseline, now)) {
+		msg->baseline = now;
 	}
 
 	msg->deadline = ENV_TIME_ADD(msg->baseline, dl);
@@ -905,7 +906,7 @@ ENV_CODE_FAST void tt_action(
 	 * If baseline expired already then we should place the message in
 	 * the active list, otherwise the inactive list.
 	 */
-	if (ENV_TIME_LE(msg->baseline, ENV_TIMER_GET())) {
+	if (ENV_TIME_LE(msg->baseline, now)) {
 		enqueue_by_deadline(&messages.active, msg);
 	} else {
 		enqueue_by_baseline(&messages.inactive, msg);
