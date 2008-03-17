@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief The TinyTimber Kernel environment interface (For SRP).
+ * \brief The TinyTimber Kernel environment interface (SRP).
  *
  * If possible avoid exporting this interface to the user via the environment.
  */
