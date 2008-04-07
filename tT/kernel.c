@@ -28,6 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief The TinyTimber Kernel implementation.
+ */
+
 /*
  * C-lib headers, not needed but makes life easier.
  */
@@ -788,6 +793,11 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 /* ************************************************************************** */
 
 /**
+ * \page tt_action_example Example usage.
+ * \include tt_action.c
+ */
+
+/**
  * \brief TinyTimber action function.
  *
  * Will schedule a message with a given baseline and deadline, if the
@@ -796,11 +806,14 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
  * TT_ASYNC(), TT_BEFORE(), TT_AFTER(), TT_AFTER_BEFORE(), and their
  * *_R() counterparts.
  *
+ * \subpage tt_action_example
+ *
  * \param bl Baseline of the message.
  * \param dl Deadline of the message.
  * \param to Object that should be called.
  * \param method Method that should be called upon the object.
- * \param arg The argument for the call.
+ * \param arg The argument(s) for the call.
+ * \param size The size of the argument(s).
  * \param receipt The receipt pointer for the message.
  */
 ENV_CODE_FAST void tt_action(
