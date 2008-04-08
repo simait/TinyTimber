@@ -47,6 +47,7 @@
 /* ************************************************************************** */
 
 void arm7_init(void);
+void arm7_print(const char *);
 void arm7_panic(const char *);
 void arm7_idle(void);
 void arm7_context_init(arm7_context_t *, size_t, tt_thread_function_t);
@@ -399,14 +400,14 @@ void _arm7_protect(int);
 /**
  * \brief ARM7 stack size.
  */
-#define ENV_STACKSIZE 128
+#define ENV_STACKSIZE 256
 
 /* ************************************************************************** */
 
 /**
  * \brief ARM7 idle stack size.
  */
-#define ENV_STACKSIZE_IDLE 128
+#define ENV_STACKSIZE_IDLE 256
 
 /* ************************************************************************** */
 
@@ -421,9 +422,8 @@ int main(void)\
 {\
 	extern const unsigned int * const arm7_stack_start;\
 	asm(\
-		"ldr	r0, %0\n"\
-		"ldr	sp, [r0]\n"\
-	   :: "m" (arm7_stack_start)\
+		"mov	sp, %0\n"\
+	   :: "r" (arm7_stack_start)\
 	   );\
 	tt_init();\
 	function();\
@@ -457,23 +457,6 @@ int main(void)\
  * \brief ARM7 stack size(total).
  */
 #define ARM7_STACKSIZE (ENV_NUM_THREADS*ENV_STACKSIZE+ENV_STACKSIZE_IDLE)
-
-/* ************************************************************************** */
-
-/**
- * \brief ARM7 print function.
- *
- * \param msg The message to print.
- */
-static inline void arm7_print(const char *msg)
-{
-	while (*msg)
-	{
-		while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
-		AT91F_US_PutChar((AT91S_USART *)AT91C_BASE_DBGU, *msg++);
-	}
-	while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
-}
 
 /* ************************************************************************** */
 
