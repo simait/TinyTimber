@@ -173,13 +173,13 @@ static void arm7_spurious(void)
 
 /* ************************************************************************** */
 
-static void sw_irq(void)
+static void switch_irq(void)
 {
 	/* Read the status. */
 	((volatile AT91S_PIO *)AT91C_BASE_PIOB)->PIO_ISR;
 
 	/* Print something so we know what happend... */
-	arm7_print("sw_irq()\n");
+	arm7_print("switch_irq()\n");
 }
 
 /* ************************************************************************** */
@@ -384,9 +384,10 @@ void arm7_init(void)
 
 	/* 
 	 * Install an interrupt handler for the above mentioned switch, it should
-	 * have the priority 0(lowest).
+	 * have the priority 0(lowest). For more info see the documentation on the
+	 * AIC (Advanced Interrupt Controller).
 	 */
-	aic->AIC_SVR[AT91C_ID_PIOB] = (unsigned int)sw_irq;
+	aic->AIC_SVR[AT91C_ID_PIOB] = (unsigned int)switch_irq;
 	aic->AIC_SMR[AT91C_ID_PIOB] = AT91C_AIC_SRCTYPE_HIGH_LEVEL|0;
 	aic->AIC_IECR = (1<<AT91C_ID_PIOB);
 
