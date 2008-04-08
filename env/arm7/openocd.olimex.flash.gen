@@ -1,0 +1,45 @@
+#!/bin/sh
+
+if test $# -ne 1
+then
+	echo "No reset target script specified, unable to generate OpenOCD script."
+	exit 1
+fi
+
+cat <<HERE
+#daemon
+gdb_port 2000
+telnet_port 2001
+daemon_startup reset
+
+#interface
+interface ft2232
+#ft2232_device_desc "Olimex OpenOCD JTAG A"
+ft2232_layout olimex-jtag
+ft2232_vid_pid 0x15BA 0x0003
+jtag_speed 0
+jtag_nsrst_delay 200
+jtag_ntrst_delay 200
+
+#use combined on interfaces or targets that can't set TRST/SRST separately
+reset_config srst_only srst_pulls_trst
+
+#jtag scan chain
+#format L IRC IRCM IDCODE (Length, IR Capture, IR Capture Mask, IDCODE)
+jtag_device 4 0x1 0xf 0xe
+ 
+#target configuration
+daemon_startup reset
+ 
+#target <type> <startup mode>
+#target arm7tdmi <endianness> <reset mode> <chainpos> <variant>
+target arm7tdmi little run_and_init 0 arm7tdmi
+run_and_halt_time 0 30
+ 
+# setup the reset script
+target_script 0 reset "$1"
+
+# flash-options AT91
+working_area 0 0x00200000 0x4000 nobackup
+flash bank at91sam7 0 0 0 0 0
+HERE
