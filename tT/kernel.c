@@ -295,10 +295,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
 	tt_message_t *tmp = *list;
 
 	/* Find where to place the message. */
-	while (
-			tmp &&
-			ENV_TIME_LE(tmp->deadline, msg->deadline)
-		  ) {
+	while (tmp && ENV_TIME_LE(tmp->deadline, msg->deadline)) {
 		/* Next item in the list. */
 		prev = tmp;
 		tmp = tmp->next;
@@ -327,10 +324,7 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt
 	tt_message_t *tmp = *list;
 
 	/* Find where to place the message. */
-	while (
-			tmp &&
-			ENV_TIME_LE(tmp->baseline, msg->baseline)
-		  ) {
+	while (tmp && ENV_TIME_LE(tmp->baseline, msg->baseline)) {
 		/* Next item in the list. */
 		prev = tmp;
 		tmp = tmp->next;

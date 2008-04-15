@@ -259,3 +259,6 @@ __init:
 	 */
 	ldr		r0, =main
 	bx		r0
+
+.Lhang:
+	b		.Lhang

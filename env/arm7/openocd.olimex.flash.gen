@@ -1,3 +1,12 @@
+#!/bin/sh
+
+if test $# -ne 1
+then
+	echo "No reset target script specified, unable to generate OpenOCD script."
+	exit 1
+fi
+
+cat <<HERE
 #daemon
 gdb_port 2000
 telnet_port 2001
@@ -13,7 +22,7 @@ jtag_nsrst_delay 200
 jtag_ntrst_delay 200
 
 #use combined on interfaces or targets that can't set TRST/SRST separately
-#reset_config srst_only srst_pulls_trst
+reset_config srst_only srst_pulls_trst
 
 #jtag scan chain
 #format L IRC IRCM IDCODE (Length, IR Capture, IR Capture Mask, IDCODE)
@@ -24,9 +33,13 @@ daemon_startup reset
  
 #target <type> <startup mode>
 #target arm7tdmi <endianness> <reset mode> <chainpos> <variant>
-target arm7tdmi little run_and_halt 0 arm7tdmi
+target arm7tdmi little run_and_init 0 arm7tdmi
 run_and_halt_time 0 30
  
+# setup the reset script
+target_script 0 reset "$1"
+
 # flash-options AT91
 working_area 0 0x00200000 0x4000 nobackup
 flash bank at91sam7 0 0 0 0 0
+HERE

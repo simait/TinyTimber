@@ -436,6 +436,23 @@ void arm7_init(void)
 /* ************************************************************************** */
 
 /**
+ * \brief ARM7 print function.
+ *
+ * \param msg The message to print.
+ */
+void arm7_print(const char *msg)
+{
+	while (*msg)
+	{
+		while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
+		AT91F_US_PutChar((AT91S_USART *)AT91C_BASE_DBGU, *msg++);
+	}
+	while (!AT91F_US_TxReady((AT91S_USART *)AT91C_BASE_DBGU));
+}
+
+/* ************************************************************************** */
+
+/**
  * \brief ARM7 panic function.
  *
  * \param msg The message to print.

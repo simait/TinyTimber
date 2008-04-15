@@ -1,6 +1,6 @@
-file test.elf
+#file arm7/app.elf
 set watchdog 0
-target remote :2000
+target remote localhost:2000
 monitor arm7_9 force_hw_bkpts enable
 
 define show_us0

@@ -1,3 +1,6 @@
+#!/bin/sh
+
+cat <<HERE
 #daemon
 gdb_port 2000
 telnet_port 2001
@@ -24,12 +27,10 @@ daemon_startup reset
  
 #target <type> <startup mode>
 #target arm7tdmi <endianness> <reset mode> <chainpos> <variant>
-target arm7tdmi little run_and_init 0 arm7tdmi
-run_and_halt_time 0 30
+target arm7tdmi little run_and_halt 0 arm7tdmi
+run_and_halt_time 0 1
  
-# setup the reset script
-target_script 0 reset env/arm7/openocd.flash.go
-
 # flash-options AT91
 working_area 0 0x00200000 0x4000 nobackup
 flash bank at91sam7 0 0 0 0 0
+HERE
