@@ -28,6 +28,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief ARM7 Environment Implementation.
+ *
+ * This is the ARM7 Environment Implementation (at91sam7x256 to be exact).
+ * Needs to be fixed to support a more wide varity of ARM7 microcontrollers
+ * since most of the task switching (99.9999%) is ARM7 compatible.
+ */
+
 #include <arm7/env.h>
 #include <arm7/types.h>
 #include <arm7/sys_call.h>
@@ -604,7 +613,7 @@ void arm7_timer_set(env_time_t next)
  * enough to allocate the shadowed registers when specifying that a function
  * is a FIQ so I doubt that this will ever be usefull.
  */
-ENV_EXT_FORCE_RAM __attribute__((naked)) void _arm7_aic_vec_fast(void)
+__attribute__((naked)) ENV_EXT_FORCE_RAM void _arm7_aic_vec_fast(void)
 {
 	/*
 	 * Just grab the first shadowed registers, load the address and
@@ -622,7 +631,7 @@ ENV_EXT_FORCE_RAM __attribute__((naked)) void _arm7_aic_vec_fast(void)
 /**
  * \brief ARM7 AIC vector.
  */
-ENV_EXT_FORCE_RAM __attribute__((naked)) void _arm7_aic_vec(void)
+__attribute__((naked)) ENV_EXT_FORCE_RAM void _arm7_aic_vec(void)
 {
 	/* Save context, not fast but makes life easier. */
 	ARM7_CONTEXT_SAVE();
