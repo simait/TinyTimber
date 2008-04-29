@@ -390,9 +390,11 @@ int main(void)\
 /** \cond */
 #define _INT_VEC(value) "__vector_" #value
 #define INT_VEC(value) _INT_VEC(value)
+#define _DINT_VEC(value) __dummy_vector_##value
+#define DINT_VEC(value) _DINT_VEC(value)
 /** \endcond */
 #define ENV_INTERRUPT(id, function) \
-	void _##function##_dummy_(void) {\
+	void DINT_VEC(id)(void) {\
 		asm(".global " INT_VEC(id) "\n" INT_VEC(id) ":\n");\
 		ENV_CONTEXT_SAVE();\
 		asm ("jsr.a	_" #function "\n");\

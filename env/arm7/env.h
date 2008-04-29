@@ -29,10 +29,8 @@
  */
 
 /**
- * \brief Skeleton environment.
- *
- * Just used for compile testing and perhaps as a template for a new
- * environment. Should compile but does not run.
+ * \file
+ * \brief ARM7 Environment Interface.
  */
 #ifndef ENV_ARM7_ENV_H_
 #define ENV_ARM7_ENV_H_
