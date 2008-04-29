@@ -237,6 +237,7 @@ ENV_EXT_FORCE_RAM static void arm7_tc0_interrupt(void)
 	/* Check for compare interrupt first. */
 	if (sr & TC_CPAS)
 	{
+		arm7_timer_active = 0;
 		tt_expired(arm7_timer_base+tc0->TC_RA);
 		tt_schedule();
 	}

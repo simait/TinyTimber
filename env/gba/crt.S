@@ -133,7 +133,7 @@
  *	reset vector and that is because we do not really need the speed when
  *	doing the initialization.
  */
-.pushsection .vectors
+.pushsection .vectors,"ax"
 __vec_reset:			ldr	pc, =__init
 __vec_undef:			b __vec_undef
 __vec_swi:				ldr	pc, =arm7_sys_call
