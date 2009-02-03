@@ -59,40 +59,7 @@
 #	else
 #		error Unknown environment.
 #	endif
-#	if ! defined ENV_TIME_T
-		/*
-		 * If env_time_t was not supplied with the environment we'll supply the
-		 * default definition as an unsigned long.
-		 */
-
-#		include <limits.h>
-		typedef unsigned long env_time_t;
-
-#		define ENV_TIME_LT(v0, v1) \
-			(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
-
-#		define ENV_TIME_LE(v0, v1) \
-			(ENV_TIME_LT(v0, v1) || ((v0) == (v1)))
-
-#		define ENV_TIME_ADD(v0, v1) \
-			((v0) + (v1))
-#	else
-		/*
-		 * If the nevironment supplies a special time type we'lll try to
-		 * check it for errors.
-		 */
-#		ifndef ENV_TIME_LT
-#			error Environment did not define ENV_TIME_LT()
-#		endif
-
-#		ifndef ENV_TIME_LE
-#			error Environment did not define ENV_TIME_LE()
-#		endif
-
-#		ifndef ENV_TIME_ADD
-#			error Environment did not define ENV_TIME_ADD()
-#		endif
-#	endif
+#endif
 #	if defined TT_SRP
 #		if ! defined ENV_RESOURCE_T
 			/*
@@ -137,6 +104,41 @@
 #				error Environment did not defined ENV_RESOURCE_AVAILABLE().
 #			endif
 #		endif
+#	endif
+#endif
+
+#if ! defined ENV_TIME_T
+	/*
+	 * If env_time_t was not supplied with the environment we'll supply the
+	 * default definition as an unsigned long.
+	 */
+
+#	include <limits.h>
+	typedef unsigned long env_time_t;
+
+#	define ENV_TIME_LT(v0, v1) \
+		(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
+
+#	define ENV_TIME_LE(v0, v1) \
+		(ENV_TIME_LT(v0, v1) || ((v0) == (v1)))
+
+#	define ENV_TIME_ADD(v0, v1) \
+		((v0) + (v1))
+#else
+	/*
+	 * If the nevironment supplies a special time type we'lll try to
+	 * check it for errors.
+	 */
+#	ifndef ENV_TIME_LT
+#		error Environment did not define ENV_TIME_LT()
+#	endif
+
+#	ifndef ENV_TIME_LE
+#		error Environment did not define ENV_TIME_LE()
+#	endif
+
+#	ifndef ENV_TIME_ADD
+#		error Environment did not define ENV_TIME_ADD()
 #	endif
 #endif
 
