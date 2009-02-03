@@ -60,49 +60,49 @@
 #		error Unknown environment.
 #	endif
 #endif
-#	if defined TT_SRP
-#		if ! defined ENV_RESOURCE_T
+
+#if defined TT_SRP
+#	if ! defined ENV_RESOURCE_T
 			/*
 			 * Resource definition was not supplied by the environment
 			 * so we supply the default definition as an unsigned long.
 			 */
-#			include <limits.h>
+#		include <limits.h>
 			typedef unsigned long env_resource_t;
 
-#			define ENV_RESOURCE_MAX \
-				(sizeof(env_resource_t)*CHAR_BIT)
-#			define ENV_RESOURCE(id) \
-				(1<<id)
+#		define ENV_RESOURCE_MAX \
+			(sizeof(env_resource_t)*CHAR_BIT)
+#		define ENV_RESOURCE(id) \
+			(1<<id)
 
-#			define ENV_RESOURCE_AQUIRE(mask, resource) \
-				do {mask |= resource;} while (0)
+#		define ENV_RESOURCE_AQUIRE(mask, resource) \
+			do {mask |= resource;} while (0)
 
-#			define ENV_RESOURCE_RELEASE(mask, resource) \
-				do {mask &= ~(resource);} while (0)
+#		define ENV_RESOURCE_RELEASE(mask, resource) \
+			do {mask &= ~(resource);} while (0)
 
-#			define ENV_RESOURCE_AVAILABLE(mask, resource) \
-				(!((mask) & (resource)))
+#		define ENV_RESOURCE_AVAILABLE(mask, resource) \
+			(!((mask) & (resource)))
 
-#		else
+#	else
 			/*
 			 * Resource definition was supplied, let's try to error check that
 			 * the required interface was supplied.
 			 */
-#			ifndef ENV_RESOURCE_MAX
-#				error Environment did not defined ENV_RESOURCE_MAX.
-#			endif
+#		ifndef ENV_RESOURCE_MAX
+#			error Environment did not defined ENV_RESOURCE_MAX.
+#		endif
 
-#			ifndef ENV_RESOURCE_AQUIRE
-#				error Environment did not defined ENV_RESOURCE_AQUIRE().
-#			endif
+#		ifndef ENV_RESOURCE_AQUIRE
+#			error Environment did not defined ENV_RESOURCE_AQUIRE().
+#		endif
 
-#			ifndef ENV_RESOURCE_RELEASE
-#				error Environment did not defined ENV_RESOURCE_RELEASE().
-#			endif
+#		ifndef ENV_RESOURCE_RELEASE
+#			error Environment did not defined ENV_RESOURCE_RELEASE().
+#		endif
 
-#			ifndef ENV_RESOURCE_AVAILABLE
-#				error Environment did not defined ENV_RESOURCE_AVAILABLE().
-#			endif
+#		ifndef ENV_RESOURCE_AVAILABLE
+#			error Environment did not defined ENV_RESOURCE_AVAILABLE().
 #		endif
 #	endif
 #endif
