@@ -64,8 +64,12 @@
 /**
  * \brief TinyTimber no argument argument.
  *
- * Just export a single char that will be copied when the user request
- * that no arguments should be passed.
+ * Just export a single char that will be copied when the user request that no
+ * arguments should be passed.
+ *
+ * \note
+ *	Might be worth nothing that 42 has no "meaning", we never look at the
+ *	value, only the address.
  */
 char tt_args_none = 42;
 
@@ -141,7 +145,11 @@ struct tt_message_t
  * \param n the number of bytes to set.
  * \return a pointer to ptr.
  */
-static void *memset(void *ptr, int n, size_t n)
+static void *memset(
+	void *ptr,
+	int n,
+	size_t n
+	)
 {
 	signed char tmp = ptr;
 	while (n--) {
@@ -162,7 +170,11 @@ static void *memset(void *ptr, int n, size_t n)
  * \param n Number of byte to copy.
  * \return pointer to dest.
  */
-static void memcpy(void *dest, const void *src, size_t n)
+static void memcpy(
+	void *dest,
+	const void *src,
+	size_t n
+	)
 {
 	unsigned char *d = dest, *s = src;
 	while (n--) {
@@ -289,7 +301,10 @@ do {\
  * \param list List to enqueue into.
  * \param msg Message to qneue.
  */
-static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt_message_t *msg)
+static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(
+	tt_message_t **list,
+	tt_message_t *msg
+	)
 {
 	tt_message_t *prev = NULL;
 	tt_message_t *tmp = *list;
@@ -318,7 +333,10 @@ static ENV_CODE_FAST ENV_INLINE void enqueue_by_deadline(tt_message_t **list, tt
  * \param list List to enqueue into.
  * \param msg Message to enqueue.
  */
-static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(tt_message_t **list, tt_message_t *msg)
+static ENV_CODE_FAST ENV_INLINE void enqueue_by_baseline(
+	tt_message_t **list,
+	tt_message_t *msg
+	)
 {
 	tt_message_t *prev = NULL;
 	tt_message_t *tmp = *list;
@@ -353,9 +371,9 @@ static ENV_CODE_FAST void tt_thread_run(void)
 
 	for (;;) {
 		/*
-		 * This must always be entered in protected mode. Also we can not
-		 * always control when/how interrupts are enabled so we must always
-		 * disable them here.
+		 * This must always be entered in protected mode. Also we can
+		 * not always control when/how interrupts are enabled so we
+		 * must always disable them here.
 		 *
 		 * Not entierly true anymore but let's keep it for now.
 		 */
@@ -387,10 +405,10 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		ENQUEUE(messages.free, this);
 
 		/*
-		 * If there are no more messages or the previous message
-		 * has earlier or equal deadline to head of the list we will
-		 * run previous thread. IF the previous thread is the idle
-		 * thread we will run it unconditionally.
+		 * If there are no more messages or the previous message has
+		 * earlier or equal deadline to head of the list we will run
+		 * previous thread. IF the previous thread is the idle thread
+		 * we will run it unconditionally.
 		 */
 
 		/* 
@@ -412,8 +430,8 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		}
 
 		/*
-		 * Check if the deadline of the pre-empted thread is earlier than
-		 * the deadline of the next message.
+		 * Check if the deadline of the pre-empted thread is earlier
+		 * than the deadline of the next message.
 		 */
 		if (
 			ENV_TIME_LE(
@@ -425,16 +443,17 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		}
 
 		/*
-		 * Ok, the next message must exist and have a deadline that is earlier
-		 * than the pre-empted thread. Let's run it.
+		 * Ok, the next message must exist and have a deadline that is
+		 * earlier than the pre-empted thread. Let's run it.
 		 */
 		continue;
 
 yield:
 		/*
-		 * Ok to yield we place the head of active threads into the inactive
-		 * thread list. If there are pre-empted threads then we will run
-		 * the first one in the list, otherwise we will run the idle thread.
+		 * Ok to yield we place the head of active threads into the
+		 * inactive thread list. If there are pre-empted threads then
+		 * we will run the first one in the list, otherwise we will run
+		 * the idle thread.
 		 */
 
 		/* 
@@ -445,9 +464,10 @@ yield:
 		ENQUEUE(threads.inactive, tmp);
 
 		/*
-		 * If there are not pre-empted threads we must dispatch the idle
-		 * thread, if there are pre-empted threads then run the most
-		 * recently pre-empted one(should have the shortest baseline).
+		 * If there are not pre-empted threads we must dispatch the
+		 * idle thread, if there are pre-empted threads then run the
+		 * most recently pre-empted one(should have the shortest
+		 * baseline).
 		 */
 		if (threads.active) {
 			/*
@@ -471,8 +491,8 @@ yield:
 		}
 
 		/*
-		 * Note that will will not get here until the thread is dispatched
-		 * again.
+		 * Note that will will not get here until the thread is
+		 * dispatched again.
 		 */
 	}
 }
@@ -502,9 +522,9 @@ void tt_init(void)
 
 	/*
 	 * Setup the message housekeeping structure, the memset() is not
-	 * neccesary in theory but in practice we will need it. The reason
-	 * for this is that not all compilers honor the static
-	 * initialization (namely C18).
+	 * neccesary in theory but in practice we will need it. The reason for
+	 * this is that not all compilers honor the static initialization
+	 * (namely C18).
 	 */
 	messages.active = NULL;
 	messages.inactive = NULL;
@@ -526,8 +546,7 @@ void tt_init(void)
 	tt_current = (env_context_t *)threads.idle;
 
 	/*
-	 * Setup the "worker" threads, again memset() not needed in theory
-	 * etc.
+	 * Setup the "worker" threads, again memset() not needed in theory etc.
 	 */
 	memset(thread_pool, 0, sizeof(thread_pool));
 	threads.active = NULL;
@@ -590,8 +609,8 @@ ENV_CODE_FAST void tt_schedule(void)
 
 	/*
 	 * If there are no active messages then we return, in theory we
-	 * shouldn't call this unless there are messages that need
-	 * scheduling but better safe than sorry.
+	 * shouldn't call this unless there are messages that need scheduling
+	 * but better safe than sorry.
 	 */
 	if (!messages.active) {
 		return;
@@ -599,16 +618,16 @@ ENV_CODE_FAST void tt_schedule(void)
 
 	/*
 	 * If the current thread is the idle thread then we will
-	 * unconditionally run a new thread since idle has the lowest
-	 * priority of all the threads.
+	 * unconditionally run a new thread since idle has the lowest priority
+	 * of all the threads.
 	 */
 	if (tt_current == threads.idle) {
 		goto schedule_new;
 	}
 
 	/*
-	 * Check if the deadline of the next message is earlier than the deadline
-	 * of the last activated thread(may not be CURRENT()).
+	 * Check if the deadline of the next message is earlier than the
+	 * deadline of the last activated thread(may not be CURRENT()).
 	 */
 	if (
 		ENV_TIME_LE(
@@ -649,8 +668,8 @@ schedule_new:
 /**
  * \brief TinyTimber expired function.
  *
- * Function will place any expired messages in the active list. It is up
- * to the callee to run tt_schedule().
+ * Function will place any expired messages in the active list. It is up to the
+ * callee to run tt_schedule().
  *
  * \param now The time that caused the interrupt.
  */
@@ -686,9 +705,9 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
 /**
  * \brief TinyTimber request function.
  *
- * Perform a synchronus call upon an object, this ensures the state
- * integrity of the object. Usually called using the TT_SYNC() macro, or
- * directly from the tt_thread_run() function.
+ * Perform a synchronus call upon an object, this ensures the state integrity
+ * of the object. Usually called using the TT_SYNC() macro, or directly from
+ * the tt_thread_run() function.
  *
  * \note
  * 	While it is possible to call this in a protected context please
@@ -701,7 +720,11 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
  * \param arg The argument for the call.
  * \return The result of the call.
  */
-ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void *arg)
+ENV_CODE_FAST env_result_t tt_request(
+	tt_object_t *to,
+	tt_method_t method,
+	void *arg
+	)
 {
 	tt_thread_t *tmp;
 	tt_thread_t *old_wanted_by;
@@ -754,8 +777,8 @@ ENV_CODE_FAST env_result_t tt_request(tt_object_t *to, tt_method_t method, void 
 		TT_SANITY(ENV_ISPROTECTED());
 
 		/*
-		 * If there was someone waiting for the object then we will make
-		 * sure that it is no longer waiting for the object.
+		 * If there was someone waiting for the object then we will
+		 * make sure that it is no longer waiting for the object.
 		 */
 		if (old_wanted_by) {
 			old_wanted_by->waits_for = NULL;
@@ -884,9 +907,9 @@ ENV_CODE_FAST void tt_action(
 	 * For now all deadlines/baselines are relative.
 	 *
 	 * TODO:
-	 *	We need to figure out in what way we want to be ablo to post messages
-	 *	in, soft_irq, no_deadline etc. are proposed message types. We should
-	 *	sit down and talk about it some day...
+	 *	We need to figure out in what way we want to be ablo to post
+	 *	messages in, soft_irq, no_deadline etc. are proposed message
+	 *	types. We should sit down and talk about it some day...
 	 *
 	 * TODO2:
 	 * 	Fully implement the new time semantics, with inherrited
@@ -973,15 +996,16 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 		}
 
 		/*
-		 * We must check if we removed the head of any list and update the
-		 * list accordingly.
+		 * We must check if we removed the head of any list and update
+		 * the list accordingly.
 		 */
 
 		if (prev) {
 			prev->next = tmp->next;
 		} else {
 			/*
-			 * Message was the head of some list, update accordingly.
+			 * Message was the head of some list, update
+			 * accordingly.
 			 */
 			if (tmp == messages.inactive) {
 				messages.inactive = messages.inactive->next;
@@ -994,8 +1018,8 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 		}
 
 		/*
-		 * Message is now free and the receipt is no longer valid. We should
-		 * also return 0 to indicate success.
+		 * Message is now free and the receipt is no longer valid. We
+		 * should also return 0 to indicate success.
 		 */
 		ENQUEUE(messages.free, tmp);
 		receipt->msg = NULL;

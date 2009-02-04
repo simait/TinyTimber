@@ -71,9 +71,9 @@ struct tt_thread_t
 	 * \brief The context of the environment.
 	 *
 	 * \note
-	 * 	We use the same thing as with tt_object_t, keep this as the first
-	 * 	thing in the struct giving it the same address allowing the
-	 * 	environment to forget about what a tt_thread_t is.
+	 * 	We use the same thing as with tt_object_t, keep this as the
+	 * 	first thing in the struct giving it the same address allowing
+	 * 	the environment to forget about what a tt_thread_t is.
 	 */
 	env_context_t context;
 
