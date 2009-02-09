@@ -498,8 +498,9 @@ void arm7_idle(void)
 	asm volatile("mov	%0, sp\n" :: "r" (&arm7_stack[ARM7_STACKSIZE]));
 
 	/* Setup the current context. */
-	tt_current->cookie = (void *)&arm7_stack[ARM7_STACKSIZE-ENV_STACKSIZE_IDLE];
-	*tt_current->cookie = ARM7_CONTEXT_COOKIE;
+	tt_current->context.cookie =
+		(void *)&arm7_stack[ARM7_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->context.cookie = ARM7_CONTEXT_COOKIE;
 
 	/* Leave protected mode. */
 	arm7_protect(0);

@@ -306,8 +306,9 @@ void avr5_idle(void)
 	SP = (unsigned short)&avr5_stack[AVR5_STACKSIZE-1];
 	/* TODO: Fix the Y register as frame pointer... */
 
-	tt_current->cookie = (void *)&avr5_stack[AVR5_STACKSIZE-ENV_STACKSIZE_IDLE];
-	*tt_current->cookie = AVR5_CONTEXT_COOKIE;
+	tt_current->context.cookie =
+		(void *)&avr5_stack[AVR5_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->context.cookie = AVR5_CONTEXT_COOKIE;
 
 	avr5_print("Entering idle-mode\n");
 

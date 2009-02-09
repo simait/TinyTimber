@@ -456,8 +456,9 @@ void msp430_idle(void)
 	/*
 	 * Fix the context cookie.
 	 */
-	tt_current->cookie = (void*)&msp430_stack[ENV_STACKSIZE-ENV_STACKSIZE_IDLE];
-	*tt_current->cookie = MSP430_CONTEXT_COOKIE;
+	tt_current->context.cookie =
+		(void*)&msp430_stack[ENV_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->context.cookie = MSP430_CONTEXT_COOKIE;
 
 	/* 
 	 * Let's not forget to leave protected mode so that we receive

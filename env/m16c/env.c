@@ -199,8 +199,9 @@ void m16c_panic(const char *str) {
  */
 void m16c_idle(void) {
 	/* Don't forget to setup the context cookie. */
-	tt_current->cookie = (void *)&m16c_stack[M16C_STACKSIZE-ENV_STACKSIZE_IDLE];
-	*tt_current->cookie = M16C_CONTEXT_COOKIE;
+	tt_current->context.cookie =
+		(void *)&m16c_stack[M16C_STACKSIZE-ENV_STACKSIZE_IDLE];
+	*tt_current->context.cookie = M16C_CONTEXT_COOKIE;
 
 	m16c_protect(0);
 	for (;;)
