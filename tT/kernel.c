@@ -701,7 +701,7 @@ schedule_new:
 	ENQUEUE(threads.active, tmp);
 
 #if defined ENV_CONTEXT_NOT_SAVED
-	ENV_CONTEXT_DISPATCH(&tmp->context);
+	ENV_CONTEXT_DISPATCH(tmp);
 	TT_SANITY(ENV_ISPROTECTED());
 #else
 	tt_current = tmp;
@@ -954,22 +954,34 @@ ENV_CODE_FAST void tt_async(
 	int protected = ENV_ISPROTECTED();
 	env_time_t now = ENV_TIMER_GET();
 	env_time_t base = CURRENT()->msg->baseline;
+	env_time_t dead = CURRENT()->msg->deadline;
 
 	TT_SANITY(msg);
 
 	/*
-	 * For now all deadlines/baselines are relative.
-	 *
-	 * TODO:
-	 * 	Fully implement the new time semantics, with inherrited
-	 * 	deadlines/baselines.
+	 * First check baseline if it's inherited or not.
 	 */
-	msg->baseline = ENV_TIME_ADD(base, bl);
-	if (ENV_TIME_LT(msg->baseline, now)) {
-		msg->baseline = now;
+	if (ENV_TIME_INHERITED(bl)) {
+		msg->baseline = base;
+	} else {
+		/*
+		 * We are not allowed to schedule anything that has a baseline
+		 * that is in the past (unless inherited).
+		 */
+		msg->baseline = ENV_TIME_ADD(base, bl);
+		if (ENV_TIME_LT(msg->baseline, now)) {
+			msg->baseline = now;
+		}
 	}
 
-	msg->deadline = ENV_TIME_ADD(msg->baseline, dl);
+	/*
+	 * Second, check if deadline is inherited or not.
+	 */
+	if (ENV_TIME_INHERITED(dl)) {
+		msg->deadline = dead;
+	} else {
+		msg->deadline= ENV_TIME_ADD(msg->baseline, dl);
+	}
 
 	ENV_PROTECT(1);
 

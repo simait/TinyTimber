@@ -339,7 +339,7 @@ void m16c_print_return(unsigned char *addr) {
 }
 #endif
 
-void m16c_context_dispatch_dummy_(m16c_context_t *context) {
+void m16c_context_dispatch_dummy_(tt_thread_t *context) {
 	/* 
 	 * NOTE:
 	 * 	__attribute__((naked)) does not work on M16C/M32C so be

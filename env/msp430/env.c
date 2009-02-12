@@ -399,7 +399,7 @@ void msp430_context_init(
  *
  * Should dispatch the specified context after saving the current.
  */
-__attribute__((naked)) void msp430_context_dispatch(msp430_context_t *context)
+__attribute__((naked)) void msp430_context_dispatch(tt_thread_t *context)
 {
 	/*
 	 * Since we want to be able to treat this as interrupt cotext we
@@ -446,11 +446,17 @@ void msp430_idle(void)
 	/* Make sure we didn't overrun the stack already. */
 	if (
 			READ_SP <=
-			(unsigned short)&msp430_stack[MSP430_STACKSIZE-ENV_STACKSIZE_IDLE]
-		)
-		msp430_panic("msp430_idle(): Idle stack overrun during init.\n");
+			(unsigned short)&msp430_stack[
+				MSP430_STACKSIZE-ENV_STACKSIZE_IDLE
+			]
+		) {
+		msp430_panic(
+			"msp430_idle(): Idle stack overrun during init.\n");
+	}
 
-	/* Reset the sp to the top of the stack, we don't ever plan to return.  */
+	/* 
+	 * Reset the sp to the top of the stack, we don't ever plan to return.
+	 */
 	WRITE_SP(&msp430_stack[MSP430_STACKSIZE]);
 
 	/*
@@ -467,12 +473,15 @@ void msp430_idle(void)
 	msp430_protect(0);
 
 	/* 
-	 * We want the ACLK to be running so that we can offer some timing services
-	 * during idle time.
+	 * We want the ACLK to be running so that we can offer some timing
+	 * services during idle time.
 	 */
 	/*for (;;);*/
 	LPM3;
 
-	/* Make ABSOLUTELY sure that that a return from this function is noticed. */
+	/* 
+	 * Make ABSOLUTELY sure that that a return from this function is
+	 * noticed.
+	 */
 	msp430_panic("msp430_idle(): LPM3 returned.\n");
 }

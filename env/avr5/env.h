@@ -55,7 +55,7 @@ void avr5_schedule(void);
 void avr5_timer_set(env_time_t);
 
 void avr5_context_init(avr5_context_t *, size_t, tt_thread_function_t);
-void avr5_context_dispatch(avr5_context_t *);
+void avr5_context_dispatch(tt_thread_t *);
 
 void avr5_interrupt_return(void);
 void avr5_normal_return(void);
@@ -151,7 +151,7 @@ void avr5_idle(void);
  * \brief AVR5 dispatch macro.
  */
 #define ENV_CONTEXT_DISPATCH(context) \
-	avr5_context_dispatch((avr5_context_t *)(context))\
+	avr5_context_dispatch((context))\
 
 /* ************************************************************************** */
 

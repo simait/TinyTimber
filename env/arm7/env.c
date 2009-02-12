@@ -565,9 +565,9 @@ void arm7_context_init(arm7_context_t *context, size_t stacksize, tt_thread_func
 /**
  * \brief ARM7 Context dispatch system call implementation.
  */
-ENV_EXT_FORCE_RAM void _arm7_context_dispatch(arm7_context_t *new)
+ENV_EXT_FORCE_RAM void _arm7_context_dispatch(tt_thread_t *new)
 {
-	tt_current = new;
+	tt_current = (tt_thread_t *)new;
 }
 
 /* ************************************************************************** */
@@ -576,7 +576,7 @@ ENV_EXT_FORCE_RAM void _arm7_context_dispatch(arm7_context_t *new)
  * \brief ARM7 Context dispatch system call binding.
  */
 ARM7_SYS_CALL_BIND(
-	void arm7_context_dispatch(env_context_t *thread),
+	void arm7_context_dispatch(tt_thread_t *thread),
 	ARM7_SYS_CALL_DISPATCH
 	);
 

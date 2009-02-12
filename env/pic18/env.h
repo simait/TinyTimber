@@ -47,7 +47,7 @@
 void pic18_init(void);
 
 void pic18_context_init(pic18_context_t *, size_t, tt_thread_function_t); 
-void pic18_context_dispatch(static pic18_context_t *);
+void pic18_context_dispatch(static tt_thread_t *);
 void pic18_idle(void);
 
 void pic18_timer_start(void);
@@ -163,7 +163,7 @@ do\
  * \brief PIC18 dispatch macro.
  */
 #define ENV_CONTEXT_DISPATCH(thread) \
-	pic18_context_dispatch((pic18_context_t *)thread)
+	pic18_context_dispatch(thread)
 
 /* ************************************************************************** */
 

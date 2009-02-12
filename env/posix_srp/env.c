@@ -50,9 +50,10 @@ static pthread_t root;
 /*
  * Sort of private internal but used in the header file.
  */
+int posix_srp_protected;
 env_time_t posix_srp_timer_timestamp;
 timer_t posix_srp_timer;
-int posix_srp_protected;
+env_time_t posix_time_inherit = {0};
 
 /* ************************************************************************** */
 
@@ -111,14 +112,14 @@ void posix_srp_init(void)
 
 void posix_srp_print(const char * const msg)
 {
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 }
 
 /* ************************************************************************** */
 
 void posix_srp_panic(const char * const msg)
 {
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 	abort();
 }
 

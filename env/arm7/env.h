@@ -49,8 +49,8 @@ void arm7_print(const char *);
 void arm7_panic(const char *);
 void arm7_idle(void);
 void arm7_context_init(arm7_context_t *, size_t, tt_thread_function_t);
-void arm7_context_dispatch(env_context_t *);
-void _arm7_context_dispatch(env_context_t *);
+void arm7_context_dispatch(tt_thread_t *);
+void _arm7_context_dispatch(tt_thread_t *);
 void arm7_schedule(void);
 void _arm7_schedule(void);
 void arm7_timer_set(env_time_t);
@@ -152,7 +152,7 @@ void _arm7_protect(int);
  * context. Must change the tt_current variable.
  */
 #define ENV_CONTEXT_DISPATCH(context) \
-	arm7_context_dispatch((env_context_t *)context)
+	arm7_context_dispatch((context))
 
 /* ************************************************************************** */
 

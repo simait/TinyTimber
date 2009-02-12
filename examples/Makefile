@@ -92,7 +92,7 @@ build_root:
 build: $(ENV_OBJECTS) $(TT_OBJECTS) $(APP_OBJECTS) $(APP_BINARY)
 
 $(APP_BINARY): $(ENV_OBJECTS) $(TT_OBJECTS) $(APP_OBJECTS)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
 ################################################################################
 # Rebuild rule that should force a rebuild of all the files.

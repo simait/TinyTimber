@@ -268,7 +268,7 @@ void avr5_context_cookie_panic(void)
  *
  * Should save the current context and restore the new context.
  */
-__attribute__((naked)) void avr5_context_dispatch(avr5_context_t *context)
+__attribute__((naked)) void avr5_context_dispatch(tt_thread_t *context)
 {
 	/* Save current context. */
 	AVR5_CONTEXT_SAVE(avr5_normal_return);
