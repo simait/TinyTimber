@@ -49,6 +49,13 @@ typedef struct tt_thread_t tt_thread_t;
 
 /* ************************************************************************** */
 
+#if defined TT_TIMBER
+/*
+ * If we're using the "real" Timber then the Ref is a bit different so
+ * we just define tt_object_t as a "Ref".
+ */
+typedef struct Ref tt_object_t;
+#else
 /**
  * \brief TinyTimber object typedef.
  */
@@ -81,6 +88,7 @@ typedef struct tt_object_t
 	tt_thread_t *wanted_by;
 #endif
 } tt_object_t;
+#endif
 
 /* ************************************************************************** */
 
