@@ -417,9 +417,8 @@ __attribute__((__naked__)) int main(void)\
  *
  * Used to install an interrupt in the AVR5 environment, should not be
  * used if no interaction with the kernel is needed.
- * \todo
- * 	Use the avr-libc version of ISR instead, if possible.
  */
+#if 0
 #define ENV_INTERRUPT(vector, function) \
 __attribute__((naked, signal, used)) void vector(void);\
 void vector(void)\
@@ -431,6 +430,18 @@ void vector(void)\
 	tt_schedule();\
 	AVR5_CONTEXT_RESTORE();\
 }
+#else
+#define ENV_INTERRUPT(vector, function) \
+ISR(vector, ISR_NAKED)\
+{\
+	extern env_time_t avr5_timer_timestamp;\
+	AVR5_CONTEXT_SAVE(avr5_interrupt_return);\
+	avr5_timer_timestamp = avr5_timer_get();\
+	function();\
+	tt_schedule();\
+	AVR5_CONTEXT_RESTORE();\
+} extern char dummy /* Force semicolon. */
+#endif
 
 /* ************************************************************************** */
 
