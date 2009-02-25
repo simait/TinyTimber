@@ -373,6 +373,7 @@ int main(void) \
  * \brief Interrupt macro.
  */
 #define ENV_INTERRUPT(vec, function) \
+void function(void); \
 __attribute__((naked)) interrupt(vec) ___##function(void) \
 {\
 	extern env_time_t msp430_timer_timestamp;\

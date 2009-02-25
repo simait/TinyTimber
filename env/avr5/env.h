@@ -432,6 +432,7 @@ void vector(void)\
 }
 #else
 #define ENV_INTERRUPT(vector, function) \
+void function(void); \
 ISR(vector, ISR_NAKED)\
 {\
 	extern env_time_t avr5_timer_timestamp;\
