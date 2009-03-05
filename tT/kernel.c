@@ -1120,6 +1120,8 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 	int protected = ENV_ISPROTECTED();
 	tt_message_t *prev = NULL, *tmp;
 
+	TT_SANITY(receipt);
+
 	ENV_PROTECT(1);
 
 	/*
