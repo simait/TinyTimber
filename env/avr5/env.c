@@ -398,21 +398,6 @@ void avr5_timer_set(env_time_t next)
 /* ************************************************************************** */
 
 /**
- * \brief AVR5 schedule function.
- *
- * This function ensures that the context is saved before calling
- * tt_schedule().
- */
-__attribute__((naked)) void avr5_schedule(void)
-{
-	AVR5_CONTEXT_SAVE(avr5_interrupt_return);
-	tt_schedule();
-	AVR5_CONTEXT_RESTORE();
-}
-
-/* ************************************************************************** */
-
-/**
  * \brief AVR5 overflow ISR.
  *
  * Will add ENV_TIMER_COUNT to the avr5_timer_base value.
@@ -430,8 +415,11 @@ ISR(TIMER1_OVF_vect)
  *
  * This is used to generate any interrupt/scheduling to the tinyTimber kernel.
  */
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER1_COMPA_vect, ISR_NAKED)
 {
+	/* Save context and make sure that the correct return is used. */
+	AVR5_CONTEXT_SAVE(avr5_interrupt_return);
+
 	/* 
 	 * Timer is no longer active, will become active when the kernel
 	 * calls avr5_timer_set().
@@ -441,5 +429,8 @@ ISR(TIMER1_COMPA_vect)
 	
 	/* Baseline might have expired... */
 	tt_expired(avr5_timer_get());
-	avr5_schedule();
+	tt_schedule();
+
+	/* Restore the active context. */
+	AVR5_CONTEXT_RESTORE();
 }
