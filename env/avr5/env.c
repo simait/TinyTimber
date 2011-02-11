@@ -150,8 +150,8 @@ void avr5_init(void)
 	/* 
 	 * 208 gives 9600 baud at 16MHz fosc and double speed.
 	 *
-	 * double speed: baud = (fosc/((8*UBRR)+1)
-	 * regular speed: baud = (fosc/((16*UBRR)+1)
+	 * double speed: UBRR = (fosc/8/baud)-1
+	 * regular speed: UBRR = (fosc/16/baud)-1
 	 */
 	UCSR0A = (1<<U2X);
 	UBRR0 = 208;
