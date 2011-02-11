@@ -112,7 +112,7 @@ typedef struct timespec env_time_t;
 /* ************************************************************************** */
 
 /**
- * \brief Environments time less than macro.
+ * \brief POSIX time less than macro.
  */
 #define ENV_TIME_LT(v0, v1) \
 	(\
@@ -123,7 +123,7 @@ typedef struct timespec env_time_t;
 /* ************************************************************************** */
 
 /**
- * \brief Environments time less than or equal to macro.
+ * \brief POSX time less than or equal to macro.
  */
 #define ENV_TIME_LE(v0, v1) \
 	(\
@@ -134,10 +134,37 @@ typedef struct timespec env_time_t;
 /* ************************************************************************** */
 
 /**
- * \brief Environments time add macro.
+ * \brief POSIX time add macro.
  */
 #define ENV_TIME_ADD(v0, v1) \
 	posix_time_add(&v0, &v1)
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX time inherit value.
+ */
+extern env_time_t posix_time_inherit;
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX time inherit macro.
+ *
+ * Used to indicate that the time should be inherited.
+ */
+#define ENV_TIME_INHERIT \
+	posix_time_inherit
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX time inherited macro.
+ *
+ * Used to check if the time was inherited or not.
+ */
+#define ENV_TIME_INHERITED(v0) \
+	(((v0).tv_sec == 0) && (((v0).tv_nsec) == 0))
 
 /* ************************************************************************** */
 

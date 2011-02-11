@@ -55,10 +55,37 @@ typedef void (*tt_thread_function_t)(void);
 
 /* ************************************************************************** */
 
+#if ! defined TT_TIMBER
+
 /**
  * \brief tinyTimber message typedef.
  */
 typedef struct tt_message_t tt_message_t;
+
+	/**
+	 * \brief Macro to start a message.
+	 */
+#define TT_MESSAGE_RUN(msg) \
+	do {\
+		tt_request((msg)->to, (msg)->method, &(msg)->arg);\
+	} while (0)
+#else
+/**
+ * \brief tinyTimber message typedef.
+ */
+typedef struct Msg tt_message_t;
+
+	/**
+	 * \brief Macro to start a message.
+	 */
+#define TT_MESSAGE_RUN(msg) \
+	do {\
+		if ((msg)->Code != NULL) {\
+			(msg)->Code();\
+		}\
+	} while (0)
+
+#endif /* defined TT_TIMBER */
 
 /* ************************************************************************** */
 
@@ -98,7 +125,7 @@ struct tt_thread_t
 /**
  * \brief The current running thread according to tinyTimber.
  */
-extern env_context_t *tt_current;
+extern tt_thread_t *tt_current;
 
 
 /* ************************************************************************** */

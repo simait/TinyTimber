@@ -38,6 +38,15 @@
  */
 #include <string.h>
 
+#if defined TT_TIMBER
+
+/*
+ * GC header, only required when running against the "real" Timber language.
+ */
+#include <gc.h>
+
+#endif /* TT_TIMBER */
+
 /*
  * Following files should not be included in case the file is mangled.
  */
@@ -61,6 +70,18 @@
 #	error Compiling regular TinyTimber against SRP environment.
 #endif
 
+/* ************************************************************************** */
+
+/**
+ * \brief TinyTimber message0.
+ *
+ * Used to get a baseline/deadline for interrupts.
+ */
+
+static tt_message_t msg0;
+
+/* ************************************************************************** */
+
 /**
  * \brief TinyTimber no argument argument.
  *
@@ -74,6 +95,11 @@
 char tt_args_none = 42;
 
 /* ************************************************************************** */
+
+/*
+ * Timber code use it's own messages structure.
+ */
+#if ! defined TT_TIMBER
 
 /**
  * \brief TinyTimber message structure type.
@@ -128,7 +154,7 @@ struct tt_message_t
 #if defined __STDC_VERSION__ && __STDC_VERSION >= 19991L
 		long long ___long_long;
 		/** \endcond */
-#endif
+#endif /* __STDC_VERSION && __STDC_VERSION >= 19991L */
 	} arg;
 };
 
@@ -182,21 +208,23 @@ static void memcpy(
 	}
 	return dest;
 }
-#endif
+#endif /* TT_CLIB_DISABLE */
+
+#endif /* TT_TIMBER */
 
 /* ************************************************************************** */
 
 /**
  * \brief TinyTimber idle context.
  */
-static env_context_t thread_idle;
+static tt_thread_t thread_idle;
 
 /* ************************************************************************** */
 
 /**
  * \brief TinyTimber current thread.
  */
-env_context_t *tt_current;
+tt_thread_t *tt_current;
 
 /* ************************************************************************** */
 
@@ -225,7 +253,7 @@ static struct
 	/**
 	 * \brief Idle context.
 	 */
-	env_context_t *idle;
+	tt_thread_t *idle;
 } threads = {0};
 
 /* ************************************************************************** */
@@ -269,7 +297,7 @@ static struct
 /**
  * \brief TinyTimber helper macro to access the current thread.
  */
-#define CURRENT() ((tt_thread_t*)tt_current)
+#define CURRENT() (tt_current)
 
 /* ************************************************************************** */
 
@@ -387,22 +415,37 @@ static ENV_CODE_FAST void tt_thread_run(void)
 		 * also cancel any receipt.
 		 */
 		DEQUEUE(messages.active, this);
+
+#if ! defined TT_TIMBER
+		/*
+		 * We use a different method of canceling the messages/receipts
+		 * when we run against the "real" Timber language.
+		 */
 		if (this->receipt) {
 			this->receipt->msg = NULL;
 		}
+#endif
+
 		CURRENT()->msg = this;
 
 		TT_SANITY(this->to);
 		TT_SANITY(this->method);
 
 		ENV_PROTECT(0);
-		tt_request(this->to, this->method, &this->arg);
+		/*tt_request(this->to, this->method, &this->arg);*/
+		TT_MESSAGE_RUN(this);
 		ENV_PROTECT(1);
 
 		TT_SANITY(threads.active == CURRENT());
 		TT_SANITY(this == CURRENT()->msg);
 
+#if ! defined TT_TIMBER
+		/*
+		 * Again, when we run against the "real" Timber language
+		 * we will be using GC to collect the messages.
+		 */
 		ENQUEUE(messages.free, this);
+#endif
 
 		/*
 		 * If there are no more messages or the previous message has
@@ -520,6 +563,7 @@ void tt_init(void)
 
 	TT_SANITY(ENV_ISPROTECTED());
 
+#if ! defined TT_TIMBER
 	/*
 	 * Setup the message housekeeping structure, the memset() is not
 	 * neccesary in theory but in practice we will need it. The reason for
@@ -534,6 +578,7 @@ void tt_init(void)
 		message_pool[i].next = &message_pool[i+1];
 	}
 	message_pool[TT_NUM_MESSAGES-1].next = NULL;
+#endif
 
 	/* 
 	 * Setup the idle thread, we do not call ENV_CONTEXT_INIT() on this
@@ -543,7 +588,7 @@ void tt_init(void)
 	 */
 	memset(&thread_idle, 0, sizeof(thread_idle));
 	threads.idle = &thread_idle;
-	tt_current = (env_context_t *)threads.idle;
+	tt_current = threads.idle;
 
 	/*
 	 * Setup the "worker" threads, again memset() not needed in theory etc.
@@ -656,10 +701,10 @@ schedule_new:
 	ENQUEUE(threads.active, tmp);
 
 #if defined ENV_CONTEXT_NOT_SAVED
-	ENV_CONTEXT_DISPATCH(&tmp->context);
+	ENV_CONTEXT_DISPATCH(tmp);
 	TT_SANITY(ENV_ISPROTECTED());
 #else
-	tt_current = &tmp->context;
+	tt_current = tmp;
 #endif
 }
 
@@ -684,9 +729,9 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
 	 * active list.
 	 */
 	while (
-			messages.inactive &&
-			ENV_TIME_LE(messages.inactive->baseline, now)
-			) {
+		messages.inactive &&
+		ENV_TIME_LE(messages.inactive->baseline, now)
+		) {
 		DEQUEUE(messages.inactive, tmp);
 		enqueue_by_deadline(&messages.active, tmp);
 	}
@@ -703,36 +748,30 @@ void ENV_CODE_FAST tt_expired(env_time_t now)
 /* ************************************************************************** */
 
 /**
- * \brief TinyTimber request function.
+ * \brief TinyTimber lock code.
  *
- * Perform a synchronus call upon an object, this ensures the state integrity
- * of the object. Usually called using the TT_SYNC() macro, or directly from
- * the tt_thread_run() function.
+ * Will leave the object point to by to in a locked state.
  *
- * \note
- * 	While it is possible to call this in a protected context please
- * 	don't do this as it is very error-prone and should it fail you might
- * 	have a non-circular deadlock on your hands (not detected by the
- * 	kernel).
- *
- * \param to Object that should be called.
- * \param method Method that should be called upon the given object.
- * \param arg The argument for the call.
- * \return The result of the call.
+ * \param to The object to lock.
  */
-ENV_CODE_FAST env_result_t tt_request(
-	tt_object_t *to,
-	tt_method_t method,
-	void *arg
-	)
+#if ! defined TT_TIMBER
+static ENV_CODE_FAST void tt_lock(tt_object_t *object)
+#else
+ENV_CODE_FAST tt_object_t *tt_lock(tt_object_t *object)
+#endif
 {
 	tt_thread_t *tmp;
 	tt_thread_t *old_wanted_by;
-	env_result_t result;
 	int protected = ENV_ISPROTECTED();
 
-	TT_SANITY(to);
-	TT_SANITY(method);
+#if defined TT_TIMBER
+	/*
+	 * If we are using the "real" Timber language then the gc-info
+	 * pointer might be a forward pointer and thus we need to use
+	 * that instead of the to object.
+	 */
+	object = gc_prologue(object);
+#endif /* TT_TIMBER */
 
 	ENV_PROTECT(1);
 
@@ -740,7 +779,7 @@ ENV_CODE_FAST env_result_t tt_request(
 	 * If the object is owned (locked) by something else we will let
 	 * that something else run until it is done with the object.
 	 */
-	tmp = to->owned_by;
+	tmp = object->owned_by;
 	if (tmp) {
 		/*
 		 * Object that owns the requested object might in turn be
@@ -762,9 +801,9 @@ ENV_CODE_FAST env_result_t tt_request(
 		 * If someone else wants this then we must save this for later
 		 * use, we have (implicitly) shorted deadline.
 		 */
-		old_wanted_by = to->wanted_by;
-		to->wanted_by = CURRENT();
-		CURRENT()->waits_for = to;
+		old_wanted_by = object->wanted_by;
+		object->wanted_by = CURRENT();
+		CURRENT()->waits_for = object;
 
 		/*
 		 * Allow the first unblocked thread to run until our object is
@@ -791,34 +830,191 @@ ENV_CODE_FAST env_result_t tt_request(
 	 * this function in (we only enter this function in a protected
 	 * state if we are in an interrupt handler).
 	 */
-	to->owned_by = CURRENT();
+	object->owned_by = CURRENT();
 	ENV_PROTECT(protected);
-	result = method(to, arg);
+
+#if defined TT_TIMBER
+	/*
+	 * We only need to return the object if we are compiled for
+	 * the "real" Timber language.
+	 */
+	return object;
+#endif
+}
+
+/* ************************************************************************** */
+
+/**
+ * \brief TinyTimber unlock code.
+ *
+ * Will leave the object point to by to in an unlocked state.
+ *
+ * \param to The object to unlock.
+ */
+#if ! defined TT_TIMBER
+static ENV_CODE_FAST void tt_unlock(tt_object_t *object)
+#else
+ENV_CODE_FAST void tt_unlock(tt_object_t *object)
+#endif /* TT_TIMBER */
+{
+	tt_thread_t *tmp;
+	int protected = ENV_ISPROTECTED();
+
+#if defined TT_TIMBER
+	/*
+	 * If running against the "real" Timber language we must do some
+	 * gc-magic before we unlock the object.
+	 */
+	gc_epilogue(object);
+#endif /* TT_TIMBER */
+
 	ENV_PROTECT(1);
-	to->owned_by = NULL;
+	object->owned_by = NULL;
 
 	/*
 	 * If we ran on account of someone else we must then they have a
 	 * shorter deadline and must thus be allowed to run now.
 	 */
-	tmp = to->wanted_by;
+	tmp = object->wanted_by;
 	if (tmp) {
-		to->wanted_by = NULL;
+		object->wanted_by = NULL;
 		tmp->waits_for = NULL;
 		ENV_CONTEXT_DISPATCH(tmp);
 		TT_SANITY(ENV_ISPROTECTED());
 	}
 
 	ENV_PROTECT(protected);
-	return result;
 }
 
 /* ************************************************************************** */
+
+/*
+ * We only expose the tt_request function if we are running as TinyTinber.
+ * Otherwise we will be exposing the tt_lock()/tt_unlock() functions as
+ * non-static functions.
+ */
+#if ! defined TT_TIMBER
+
+/**
+ * \brief TinyTimber request function.
+ *
+ * Perform a synchronus call upon an object, this ensures the state integrity
+ * of the object. Usually called using the TT_SYNC() macro, or directly from
+ * the tt_thread_run() function.
+ *
+ * \note
+ * 	While it is possible to call this in a protected context please
+ * 	don't do this as it is very error-prone and should it fail you might
+ * 	have a non-circular deadlock on your hands (not detected by the
+ * 	kernel).
+ *
+ * \param to Object that should be called.
+ * \param method Method that should be called upon the given object.
+ * \param arg The argument for the call.
+ * \return The result of the call.
+ */
+ENV_CODE_FAST env_result_t tt_request(
+	tt_object_t *to,
+	tt_method_t method,
+	void *arg
+	)
+{
+	env_result_t result;
+
+	TT_SANITY(to);
+	TT_SANITY(method);
+
+	tt_lock(to);
+
+	result = method(to, arg);
+
+	tt_unlock(to);
+
+	return result;
+}
+
+#endif /* TT_TIMBER */
+
+/* ************************************************************************** */
+
+#if ! defined TT_TIMBER
+static ENV_CODE_FAST void tt_async(
+	tt_message_t *msg,
+	env_time_t bl,
+	env_time_t dl
+	)
+#else
+ENV_CODE_FAST void tt_async(
+	tt_message_t *msg,
+	env_time_t bl,
+	env_time_t dl
+	)
+#endif
+{
+	int protected = ENV_ISPROTECTED();
+	env_time_t now = ENV_TIMER_GET();
+	env_time_t base = CURRENT()->msg->baseline;
+	env_time_t dead = CURRENT()->msg->deadline;
+
+	TT_SANITY(msg);
+
+	/*
+	 * First check baseline if it's inherited or not.
+	 */
+	if (ENV_TIME_INHERITED(bl)) {
+		msg->baseline = base;
+	} else {
+		/*
+		 * We are not allowed to schedule anything that has a baseline
+		 * that is in the past (unless inherited).
+		 */
+		msg->baseline = ENV_TIME_ADD(base, bl);
+		if (ENV_TIME_LT(msg->baseline, now)) {
+			msg->baseline = now;
+		}
+	}
+
+	/*
+	 * Second, check if deadline is inherited or not.
+	 */
+	if (ENV_TIME_INHERITED(dl)) {
+		msg->deadline = dead;
+	} else {
+		msg->deadline= ENV_TIME_ADD(msg->baseline, dl);
+	}
+
+	ENV_PROTECT(1);
+
+	/*
+	 * If baseline expired already then we should place the message in
+	 * the active list, otherwise the inactive list.
+	 */
+	if (ENV_TIME_LE(msg->baseline, now)) {
+		enqueue_by_deadline(&messages.active, msg);
+	} else {
+		enqueue_by_baseline(&messages.inactive, msg);
+		if (messages.inactive == msg) {
+			ENV_TIMER_SET(msg->baseline);
+		}
+	}
+
+	ENV_PROTECT(protected);
+}
+
+/* ************************************************************************** */
+
+/*
+ * If we are using the "real" Timber language then we will not be exposing
+ * the tt_action but rather the primitive tt_async as a non-static function.
+ */
+#if ! defined TT_TIMBER
 
 /**
  * \page tt_action_example Example usage.
  * \include tt_action.c
  */
+
+/* ************************************************************************** */
 
 /**
  * \brief TinyTimber action function.
@@ -850,8 +1046,8 @@ ENV_CODE_FAST void tt_action(
 		)
 {
 	int protected = ENV_ISPROTECTED();
-	env_time_t base, now;
 	tt_message_t *msg;
+	tt_message_t *old_msg = NULL;
 
 	TT_SANITY(to);
 	TT_SANITY(method);
@@ -872,6 +1068,15 @@ ENV_CODE_FAST void tt_action(
 		receipt->msg = msg;
 	}
 
+	/* Only copy the arguments if there are any none. */
+	if (arg != &tt_args_none) {
+		memcpy(&msg->arg, arg, size);
+	}
+
+	/* To and method should always be present of course. */
+	msg->to = to;
+	msg->method = method;
+
 	/*
 	 * The base (used to calculate the baseline of the message) is
 	 * depending on the state, if we are protected then we where called
@@ -880,73 +1085,23 @@ ENV_CODE_FAST void tt_action(
 	 * implicitly depending on this since it's realtive to the baseline.
 	 */
 	if (protected) {
-		base = ENV_TIMESTAMP();
-	} else {
-		base = CURRENT()->msg->baseline;
+		old_msg = CURRENT()->msg;
+		CURRENT()->msg = &msg0;
+		msg0.deadline = msg0.baseline = ENV_TIMESTAMP();
 	}
 
-#if defined ENV_PREEMPTIVE_INTERRUPTS
-	/*
-	 * Ok, this is new code, so new it's not in use _EVER_. So please
-	 * don't go defining ENV_PREEMPTIVE_INTERRUPTS, and if you do well
-	 * tough luck.
-	 */
-	ENV_PROTECT(0);
-#else
-	/*
-	 * If we were called from a non-protected context we can always
-	 * leave protected mode, if however we were called from a protected
-	 * context we cannot leave it unless the environment can handle
-	 * pre-emptive interrupts. We have as of today no guidelines for how
-	 * this might be handled.
-	 */
-	ENV_PROTECT(protected);
-#endif
+	/* Place the message in the correct queue. */
+	tt_async(msg, bl, dl);
 
-	/*
-	 * For now all deadlines/baselines are relative.
-	 *
-	 * TODO:
-	 *	We need to figure out in what way we want to be ablo to post
-	 *	messages in, soft_irq, no_deadline etc. are proposed message
-	 *	types. We should sit down and talk about it some day...
-	 *
-	 * TODO2:
-	 * 	Fully implement the new time semantics, with inherrited
-	 * 	deadlines/baselines.
-	 */
-	now = ENV_TIMER_GET();
-	msg->baseline = ENV_TIME_ADD(base, bl);
-	if (ENV_TIME_LT(msg->baseline, now)) {
-		msg->baseline = now;
-	}
-
-	msg->deadline = ENV_TIME_ADD(msg->baseline, dl);
-	msg->to = to;
-	msg->method = method;
-
-	/* Only copy the arguments if there are none. */
-	if (arg != &tt_args_none) {
-		memcpy(&msg->arg, arg, size);
-	}
-
-	ENV_PROTECT(1);
-
-	/*
-	 * If baseline expired already then we should place the message in
-	 * the active list, otherwise the inactive list.
-	 */
-	if (ENV_TIME_LE(msg->baseline, now)) {
-		enqueue_by_deadline(&messages.active, msg);
-	} else {
-		enqueue_by_baseline(&messages.inactive, msg);
-		if (messages.inactive == msg) {
-			ENV_TIMER_SET(msg->baseline);
-		}
+	/* Restore any old message (if we where called from and interrupt. */
+	if (old_msg) {
+		CURRENT()->msg = old_msg;
 	}
 
 	ENV_PROTECT(protected);
 }
+
+#endif /* TT_TIMBER */
 
 /* ************************************************************************** */
 
@@ -964,6 +1119,8 @@ ENV_CODE_FAST int tt_cancel(tt_receipt_t *receipt)
 	int result = 1;
 	int protected = ENV_ISPROTECTED();
 	tt_message_t *prev = NULL, *tmp;
+
+	TT_SANITY(receipt);
 
 	ENV_PROTECT(1);
 

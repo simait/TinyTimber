@@ -98,6 +98,7 @@ static posix_ext_interrupt_handler_t posix_interrupt_vector[POSIX_NUM_INTERRUPTS
  */
 timer_t posix_timer;
 env_time_t posix_timer_timestamp;
+env_time_t posix_time_inherit = {0};
 
 /* ************************************************************************** */
 
@@ -107,7 +108,7 @@ env_time_t posix_timer_timestamp;
 static void interrupt_handler(int sig)
 {
 	sig_atomic_t interrupt;
-	posix_context_t *context;
+	tt_thread_t *context;
 
 	context = pthread_getspecific(thread_context);
 
@@ -464,7 +465,7 @@ void posix_panic(const char * const msg)
 	assert(msg);
 
 	/* Print the message. */
-	fprintf(stderr, msg);
+	fprintf(stderr, "%s", msg);
 
 	/* abort execution. */
 	abort();
@@ -588,13 +589,13 @@ void posix_idle(void)
 	 * since this context was never initialized. Tedious but that's the
 	 * way it's done (for now).
 	 */
-	if (pthread_mutex_init(&tt_current->lock, NULL)) {
+	if (pthread_mutex_init(&tt_current->context.lock, NULL)) {
 		posix_panic("posix_idle(): Unable to initialize lock.\n");
 	}
-	if (pthread_cond_init(&tt_current->signal, NULL)) {
+	if (pthread_cond_init(&tt_current->context.signal, NULL)) {
 		posix_panic("posix_idle(): Unable to initialize signal.\n");
 	}
-	tt_current->thread = pthread_self();
+	tt_current->context.thread = pthread_self();
 	if (pthread_setspecific(thread_context, tt_current)) {
 		posix_panic("posix_idle(): Unable to set thread specific context.\n");
 	}
@@ -614,9 +615,9 @@ void posix_idle(void)
  *
  * \param The thread to dispatch.
  */
-void posix_context_dispatch(posix_context_t *thread)
+void posix_context_dispatch(tt_thread_t *thread)
 {
-	posix_context_t *context;
+	tt_thread_t *context;
 
 	context = pthread_getspecific(thread_context);
 	assert(context == tt_current);
@@ -635,32 +636,32 @@ void posix_context_dispatch(posix_context_t *thread)
 
 	/* Synchronize START. */
 
-	if (pthread_mutex_lock(&tt_current->lock)) {
+	if (pthread_mutex_lock(&tt_current->context.lock)) {
 		posix_panic(
 				"posix_context_dispatch(): "
 				"Unable to aquire new current context lock.\n"
 				);
 	}
 
-	tt_current->run = 1;
+	tt_current->context.run = 1;
 
-	if (pthread_mutex_unlock(&tt_current->lock)) {
+	if (pthread_mutex_unlock(&tt_current->context.lock)) {
 		posix_panic(
 				"posix_context_dispatch(): "
 				"Unable to release new current context lock.\n"
 				);
 	}
 
-	if (pthread_cond_signal(&(tt_current->signal))) {
+	if (pthread_cond_signal(&(tt_current->context.signal))) {
 		posix_panic(
 				"posix_context_dispatch(): "
 				"Unable to signal new current state change.\n"
 				);
 	}
 
-	context->run = 0;
+	context->context.run = 0;
 
-	if (pthread_mutex_unlock(&context->lock)) {
+	if (pthread_mutex_unlock(&context->context.lock)) {
 		posix_panic(
 				"posix_context_dispatch(): "
 				"Unable to release context lock.\n"
@@ -670,8 +671,8 @@ void posix_context_dispatch(posix_context_t *thread)
 	/* Synchronization DONE. */
 
 	/* Wait until we are released again. */
-	while (!context->run) {
-		if (pthread_cond_wait(&context->signal, &kernel_lock)) {
+	while (!context->context.run) {
+		if (pthread_cond_wait(&context->context.signal, &kernel_lock)) {
 			posix_panic(
 					"posix_context_dispatch(): "
 					"Unable to wait until we are released again.\n"
@@ -680,7 +681,7 @@ void posix_context_dispatch(posix_context_t *thread)
 	}
 
 	/* If we are running we must own our context lock. */
-	if (pthread_mutex_lock(&context->lock)) {
+	if (pthread_mutex_lock(&context->context.lock)) {
 		posix_panic(
 				"posix_context_dispatch(): "
 				"Unable to aquire context lock.\n"
@@ -741,7 +742,7 @@ void posix_ext_interrupt_generate(int id)
 	ack_clear(interrupt_ack);
 
 	/* Pre-empt the current thread. */
-	if (pthread_kill(tt_current->thread, SIGUSR1)) {
+	if (pthread_kill(tt_current->context.thread, SIGUSR1)) {
 		posix_panic(
 				"posix_ext_interrupt_generate(): "
 				"Unable to deliver signal to thread.\n"

@@ -36,6 +36,7 @@
  */
 #if ! defined TT_MANGLED
 #	include <types.h>
+#	include <kernel.h>
 #endif
 
 #include <signal.h>
@@ -50,7 +51,7 @@ void msp430_print(const char *);
 void msp430_panic(const char *);
 
 void msp430_context_init(msp430_context_t *, size_t, void (*)(void));
-void msp430_context_dispatch(msp430_context_t *);
+void msp430_context_dispatch(tt_thread_t *);
 void msp430_cookie_panic(void);
 void msp430_idle(void);
 
@@ -142,7 +143,7 @@ do\
  * Will dispatch the selected thread.
  */
 #define ENV_CONTEXT_DISPATCH(thread) \
-	msp430_context_dispatch((env_context_t *)(thread))
+	msp430_context_dispatch((thread))
 
 /* ************************************************************************** */
 
@@ -372,6 +373,7 @@ int main(void) \
  * \brief Interrupt macro.
  */
 #define ENV_INTERRUPT(vec, function) \
+void function(void); \
 __attribute__((naked)) interrupt(vec) ___##function(void) \
 {\
 	extern env_time_t msp430_timer_timestamp;\

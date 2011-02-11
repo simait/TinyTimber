@@ -55,7 +55,7 @@ void avr5_schedule(void);
 void avr5_timer_set(env_time_t);
 
 void avr5_context_init(avr5_context_t *, size_t, tt_thread_function_t);
-void avr5_context_dispatch(avr5_context_t *);
+void avr5_context_dispatch(tt_thread_t *);
 
 void avr5_interrupt_return(void);
 void avr5_normal_return(void);
@@ -151,7 +151,7 @@ void avr5_idle(void);
  * \brief AVR5 dispatch macro.
  */
 #define ENV_CONTEXT_DISPATCH(context) \
-	avr5_context_dispatch((avr5_context_t *)(context))\
+	avr5_context_dispatch((context))\
 
 /* ************************************************************************** */
 
@@ -418,16 +418,31 @@ __attribute__((__naked__)) int main(void)\
  * Used to install an interrupt in the AVR5 environment, should not be
  * used if no interaction with the kernel is needed.
  */
+#if 0
 #define ENV_INTERRUPT(vector, function) \
-__attribute__((naked, signal, used)) vector(void)\
+__attribute__((naked, signal, used)) void vector(void);\
+void vector(void)\
 {\
-	extern env_time_t avr5_timestamp;\
+	extern env_time_t avr5_timer_timestamp;\
 	AVR5_CONTEXT_SAVE(avr5_interrupt_return);\
-	avr5_timestamp = avr5_timer_get();\
+	avr5_timer_timestamp = avr5_timer_get();\
 	function();\
 	tt_schedule();\
 	AVR5_CONTEXT_RESTORE();\
 }
+#else
+#define ENV_INTERRUPT(vector, function) \
+void function(void); \
+ISR(vector, ISR_NAKED)\
+{\
+	extern env_time_t avr5_timer_timestamp;\
+	AVR5_CONTEXT_SAVE(avr5_interrupt_return);\
+	avr5_timer_timestamp = avr5_timer_get();\
+	function();\
+	tt_schedule();\
+	AVR5_CONTEXT_RESTORE();\
+} extern char dummy /* Force semicolon. */
+#endif
 
 /* ************************************************************************** */
 

@@ -124,6 +124,12 @@
 
 #	define ENV_TIME_ADD(v0, v1) \
 		((v0) + (v1))
+
+#	define ENV_TIME_INHERIT \
+		(0)
+
+#	define ENV_TIME_INHERITED(v0) \
+		((v0) == 0ul)
 #else
 	/*
 	 * If the nevironment supplies a special time type we'lll try to
@@ -140,6 +146,15 @@
 #	ifndef ENV_TIME_ADD
 #		error Environment did not define ENV_TIME_ADD()
 #	endif
+
+#	ifndef ENV_TIME_INHERIT
+#		error Environment did not define ENV_TIME_INHERIT
+#	endif
+
+#	ifndef ENV_TIME_INHERITED
+#		error Environment did not define ENV_TIME_INHERITED()
+#	endif
+
 #endif
 
 #endif

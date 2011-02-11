@@ -99,6 +99,33 @@ typedef struct timespec env_time_t;
 /* ************************************************************************** */
 
 /**
+ * \brief POSIX time inherit value.
+ */
+extern env_time_t posix_time_inherit;
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX time inherit macro.
+ *
+ * Used to indicate that the time should be inherited.
+ */
+#define ENV_TIME_INHERIT \
+	posix_time_inherit
+
+/* ************************************************************************** */
+
+/**
+ * \brief POSIX time inherited macro.
+ *
+ * Used to check if the time was inherited or not.
+ */
+#define ENV_TIME_INHERITED(v0) \
+	(((v0).tv_sec == 0) && (((v0).tv_nsec) == 0))
+
+/* ************************************************************************** */
+
+/**
  * \brief POSIX env_time_t addition function.
  *
  * Non-standard addition of the time types, should be inlined and/or eliminated

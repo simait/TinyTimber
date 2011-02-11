@@ -51,7 +51,7 @@ void posix_panic(const char * const);
 void posix_context_init(posix_context_t *, void (*)(void));
 void posix_protect(int);
 int  posix_isprotected(void);
-void posix_context_dispatch(env_context_t *);
+void posix_context_dispatch(tt_thread_t *);
 void posix_idle(void);
 
 void posix_ext_interrupt_handler(int, posix_ext_interrupt_handler_t);
@@ -150,7 +150,7 @@ void posix_ext_interrupt_generate(int);
  * Will dispatch the selected thread.
  */
 #define ENV_CONTEXT_DISPATCH(thread) \
-	posix_context_dispatch((env_context_t*)(thread))
+	posix_context_dispatch((thread))
 
 /* ************************************************************************** */
 

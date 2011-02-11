@@ -283,7 +283,7 @@ void pic18_context_init(
 /**
  * \brief The PIC18 context dispatch function.
  */
-void pic18_context_dispatch(static pic18_context_t *context)
+void pic18_context_dispatch(static tt_thread_t *context)
 {
 	/* 
 	 * NOTE: must NOT!!! have _ANY_ variables on the stack or we are

@@ -48,7 +48,7 @@ void m16c_idle(void);
 void m16c_timer_start(void);
 void m16c_timer_set(env_time_t);
 void m16c_context_init(m16c_context_t *, size_t, tt_thread_function_t);
-void m16c_context_dispatch(m16c_context_t *);
+void m16c_context_dispatch(tt_thread_t *);
 
 /* ************************************************************************** */
 
