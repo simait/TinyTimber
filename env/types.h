@@ -107,6 +107,13 @@
 #	endif
 #endif
 
+#if ! defined ENV_ARGUMENT_T
+	/* If an argument type was not supplied, define it as an integer. */
+	typedef int env_argument_t;
+
+#	define ENV_ARGUMENT_COPY(from, to) ((to) = (from))
+#endif
+
 #if ! defined ENV_TIME_T
 	/*
 	 * If env_time_t was not supplied with the environment we'll supply the
@@ -117,10 +124,21 @@
 	typedef unsigned long env_time_t;
 
 #	define ENV_TIME_LT(v0, v1) \
-		(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
+	  (((env_time_t)(v1) - (env_time_t)(v0) - (env_time_t)1) < (env_time_t)LONG_MAX)
+// #	define ENV_TIME_LT(v0, v1) \
+// 		(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
 
-#	define ENV_TIME_LE(v0, v1) \
-		(ENV_TIME_LT(v0, v1) || ((v0) == (v1)))
+#	define ENV_TIME_EQ(v0, v1) \
+		((v0) == (v1))
+
+#	define ENV_TIME_LT(v0, v1) \
+	  (((env_time_t)(v1) - (env_time_t)(v0)) < (env_time_t)LONG_MAX)
+
+// #	define ENV_TIME_LE(v0, v1) \
+// 		(ENV_TIME_LT(v0, v1) || ENV_TIME_EQ(v0, v1))
+
+#	define ENV_TIME_GE(v0, v1) \
+		(!ENV_TIME_LT(v0, v1) || ENV_TIME_EQ(v0, v1))
 
 #	define ENV_TIME_ADD(v0, v1) \
 		((v0) + (v1))
