@@ -125,17 +125,13 @@
 
 #	define ENV_TIME_LT(v0, v1) \
 	  (((env_time_t)(v1) - (env_time_t)(v0) - (env_time_t)1) < (env_time_t)LONG_MAX)
-// #	define ENV_TIME_LT(v0, v1) \
-// 		(((v0)<(v1))?((v1)-(v0))<LONG_MAX:((v0)-(v1))>LONG_MAX)
 
 #	define ENV_TIME_EQ(v0, v1) \
 		((v0) == (v1))
 
-#	define ENV_TIME_LT(v0, v1) \
+#	define ENV_TIME_LE(v0, v1) \
 	  (((env_time_t)(v1) - (env_time_t)(v0)) < (env_time_t)LONG_MAX)
 
-// #	define ENV_TIME_LE(v0, v1) \
-// 		(ENV_TIME_LT(v0, v1) || ENV_TIME_EQ(v0, v1))
 
 #	define ENV_TIME_GE(v0, v1) \
 		(!ENV_TIME_LT(v0, v1) || ENV_TIME_EQ(v0, v1))
