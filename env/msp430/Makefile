@@ -22,8 +22,9 @@ endif
 ################################################################################
 
 CC		:= msp430-gcc
-CFLAGS	:= -DENV_MSP430=1 -mmcu=msp430x1611 -O2 -Wall -mendup-at=main\
-			   -mno-stack-init -I$(ENV_ROOT) $(CFLAGS)
+CFLAGS	:= -DENV_MSP430=1 -mmcu=msp430x1611 -O2 -Wall\
+		-I$(ENV_ROOT) $(CFLAGS)
+#-mendup-at=main -mno-stack-init\
 LDFLAGS	:= -mmcu=msp430x1611
 
 ################################################################################

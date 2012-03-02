@@ -122,7 +122,7 @@ void msp430_init(void)
 
 	/* Setup the USART. */
 	U0CTL = CHAR|SWRST;
-	U0TCTL = SSEL_ACLK;
+	U0TCTL = SSEL0; /* Formerly TCSSEL_ACLK, i.e. ACLK. */
 	U0RCTL = 0x00;
 
 	/* Set the baud rate. */
@@ -444,8 +444,9 @@ void msp430_cookie_panic(void)
 void msp430_idle(void)
 {
 	/* Make sure we didn't overrun the stack already. */
+	unsigned short sp = (unsigned short)READ_SP; /* Workaround for broken READ_SP macro... */
 	if (
-			READ_SP <=
+			sp <=
 			(unsigned short)&msp430_stack[
 				MSP430_STACKSIZE-ENV_STACKSIZE_IDLE
 			]

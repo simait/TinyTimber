@@ -176,7 +176,7 @@ do\
 		"jz		.Lcookie_ok%=\n"\
 		"call	msp430_cookie_panic\n"\
 		".Lcookie_ok%=:\n"\
-		:: "I" (MSP430_CONTEXT_COOKIE)\
+		:: "i" (MSP430_CONTEXT_COOKIE)\
 	)
 
 
@@ -211,7 +211,7 @@ do\
 		"pop	r6\n"\
 		"pop	r5\n"\
 		"pop	r4\n"\
-		:: "I" (MSP430_CONTEXT_COOKIE)\
+		:: "i" (MSP430_CONTEXT_COOKIE)\
 	)
 
 /* ************************************************************************** */
