@@ -400,11 +400,9 @@ static inline void msp430_protect(int state)
 	if (state)
 	{
 		dint();
-		asm volatile ("bic.b	#0x40, &0x35\n");\
 	}
 	else
 	{
-		asm volatile ("bis.b	#0x40, &0x35\n");\
 		eint();
 	}
 }
