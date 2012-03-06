@@ -377,13 +377,11 @@ void function(void); \
 __attribute__((naked)) interrupt(vec) ___##function(void) \
 {\
 	extern env_time_t msp430_timer_timestamp;\
-	asm volatile ("bic.b	#0x40, &0x35\n");\
 	MSP430_CONTEXT_SAVE();\
 	msp430_timer_timestamp = msp430_timer_get();\
 	function();\
 	tt_schedule();\
 	MSP430_CONTEXT_RESTORE();\
-	asm volatile ("bis.b	#0x40, &0x35\n");\
 	asm volatile ("reti\n");\
 } extern char dummy
 
